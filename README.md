@@ -4,6 +4,10 @@ This repository contains the Apple II VERA port of the NES homebrew game
 Alter Ego. The original NES source is available at
 [github.com/avshabanov/alter-ego](https://github.com/avshabanov/alter-ego).
 
+![Alter Ego title screen running on Apple II VERA](1.png)
+
+![Alter Ego gameplay running on Apple II VERA](2.png)
+
 ## Build and run
 
 The image builder and packer are kept in this repository. It bundles the Cadius
