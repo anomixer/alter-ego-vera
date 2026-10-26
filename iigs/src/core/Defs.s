@@ -88,8 +88,8 @@ NtmNib                 equ   94          ; PPUFlushQueuesAlt: its nibble of tile
 NtmPal                 equ   96          ; PPUFlushQueuesAlt: its palette select * 2
 PPU_BANK               equ   98
 
-unused100              equ   100
-unused102              equ   102
+YOffsetDyn             equ   100         ; Add Ego layout: playfield's vertical offset for the current band
+LayoutActiveDyn        equ   102         ; Add Ego layout: 1 while the compact HUD/playfield layout is in use
 LastRead               equ   104
 
 SpriteBank0            equ   106          ; Always zero to allow [SpriteBank0],y addressing

@@ -46,7 +46,11 @@ ppu2ciram MAC
 ; The carry must be clear.  This is the only place the blitter reads the viewport offset, so replacing the
 ; constant with a memory location makes the viewport position dynamic.
 add_y_offset MAC
-        adc  #y_offset
+        pha
+        ldal YOffsetAbs
+        sta  YOffsetDyn
+        pla
+        adc  YOffsetDyn
         <<<
 
 ; Calculates the logical tile row from a CIRAM address.  This does depend on the mirroring mode. When

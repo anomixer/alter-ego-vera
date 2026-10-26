@@ -37,6 +37,9 @@ PPU_SetPaletteWritesL   EXT   ; ppu/ppu_palette.s: the generated palette code (p
 
 ; Data
 ppuPalDirty             EXT
+YOffsetAbs              EXT
+LayoutActiveAbs         EXT
+OAM_COPY                EXT
 ppumask_override        EXT
 Mul160Tbl               EXT
 _ppumask                EXT

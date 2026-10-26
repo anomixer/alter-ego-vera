@@ -22,29 +22,10 @@
             phk
             plb
 
-; Diagnostic: border green on entry to Main
-            php
-            sep   #$20
-            pha
-            lda   #$0C
-            stal  $E0C034
-            pla
-            rep   #$20
-            plp
-
 ; NROM: vertical mirroring at power on.
             tax                           ; X = memory manager user ID (passed in A by GS/OS)
             lda   #VERTICAL_MIRRORING     ; A = cartridge nametable mirroring at power on
             jsr   NES_StartUp
-
-; Diagnostic marker: startup returned (SHR is initialized by now).
-            pha
-            lda   #$FF
-            sta   $E12000
-            sta   $E12001
-            sta   $E12002
-            sta   $E12003
-            pla
 
 ; The C PRG's zero page is linked at $0020, so it has to run with D=$0000.
 ; The runtime's default DP_NES is in the STKDP bank and would make every
@@ -93,6 +74,69 @@ PREF_FILENAME strl '1/ae.prefs'
 ; palette code needs its swizzle tables installed before the title is drawn.
 InitPlayfield
             jmp   SetDefaultPalette
+
+            mx    %00
+
+; CUSTOM_RENDER_SCREEN.  Four bands, each with its own source offset:
+; HUD, one-pixel separator, playfield, bottom frame / blank lines.
+CustomRender ENT
+            ldal  LayoutActiveAbs
+            and   #$00FF
+            bne   :draw
+
+            ; The title's star field uses many sprites; the game's playfield
+            ; has only the player, the enemies and their shots.
+            ldal  OAM_COPY
+            beq   :inactive
+            lda   #1
+            stal  LayoutActiveAbs
+            bra   :draw
+
+:inactive
+            lda   #0
+            stal  YOffsetAbs
+            clc
+            rtl
+
+:draw
+            ; HUD: NES rows 2-3 -> SHR 0-15, fixed at the top and not scrolled
+            lda   #0
+            tay
+            lda   #0
+            tax
+            ldal  _ppuctrl
+            jsl   NES_SetScroll
+            lda   #16
+            stal  YOffsetAbs
+            lda   #0
+            ldx   #16
+            jsl   PPU_DrawScreenRange
+
+            ; Playfield: NES rows 5-22 -> SHR 16-152 (line 16 is the 1-pixel gap)
+            ldal  _ppuscroll_y
+            tay
+            ldal  _ppuscroll_x
+            tax
+            ldal  _ppuctrl
+            jsl   NES_SetScroll
+            lda   #31
+            stal  YOffsetAbs
+            lda   #16
+            ldx   #137
+            jsl   PPU_DrawScreenRange
+
+            ; Bottom frame and blank lines: NES rows 24-29 -> SHR 153-199
+            lda   #39
+            stal  YOffsetAbs
+            lda   #153
+            ldx   #47
+            jsl   PPU_DrawScreenRange
+
+            lda   #0
+            stal  YOffsetAbs
+            lda   #0
+            sec
+            rtl
 
             mx    %00
 

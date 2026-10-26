@@ -396,7 +396,8 @@ offsetMask
         db   $0F,$0F,$0F,$0F,$0F,$0F,$0F,$0F,$07,$07,$07,$07,$03,$03,$01,$00  ; $F0-$FF
 
 ; ---- ppu_sprites.s: the sprites that passed the filters (the grid renderer reads it with 8-bit X) ----
-OAM_COPY      ds 256
+OAM_COPY      ENT
+              ds 256
 
 ; ---- ppu_grid_quads.s: OAM coordinate tables (gridMarkSprite8/16, 8-bit X / Y) and the per-sprite cells ----
             DO    ENABLE_DIRTY_RENDERING

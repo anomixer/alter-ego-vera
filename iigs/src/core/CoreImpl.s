@@ -12,65 +12,15 @@
 ; Assumes the direct page is set and EngineMode and UserId has been initialized
 _CoreStartUp
 
-; Diagnostic: border white on entry to _CoreStartUp
-                  php
-                  sep   #$20
-                  pha
-                  lda   #$0F
-                  stal  $E0C034
-                  pla
-                  rep   #$20
-                  plp
-
                   jsr       IntStartUp          ; Enable certain interrupts
                   bcs       :core_err1
-
-; Diagnostic: border orange after IntStartUp
-                  php
-                  sep   #$20
-                  pha
-                  lda   #$09
-                  stal  $E0C034
-                  pla
-                  rep   #$20
-                  plp
 
                   jsr       InitMemory          ; Allocate and initialize memory for the engine
                   bcs       :core_err2
 
-; Diagnostic: border yellow after InitMemory
-                  php
-                  sep   #$20
-                  pha
-                  lda   #$03
-                  stal  $E0C034
-                  pla
-                  rep   #$20
-                  plp
-
                   jsr       EngineReset         ; All of the resources are allocated, put the engine in a known state
 
-; Diagnostic: border green after EngineReset
-                  php
-                  sep   #$20
-                  pha
-                  lda   #$0C
-                  stal  $E0C034
-                  pla
-                  rep   #$20
-                  plp
-
                   jsr       InitGraphics        ; Initialize all of the graphics-related data
-
-; Diagnostic: border magenta after InitGraphics
-                  php
-                  sep   #$20
-                  pha
-                  lda   #$08
-                  stal  $E0C034
-                  pla
-                  rep   #$20
-                  plp
 
 ; Once the graphics arrays and core engine data is set up, prep the PEA field as if a render has already
 ; happened.  This is to put everything in a valid state because other wise if the code tried to render

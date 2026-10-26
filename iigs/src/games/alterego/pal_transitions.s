@@ -64,11 +64,13 @@ ApplyPaletteChange
             ldx   palCurrent
             sty   palCurrent
             jsr   UpdatePalette       ; X = from, Y = to
-            rtl
+            bra   :setlayout
 :colors     ldy   palCurrent
             beq   :none               ; no palette yet
             jsr   LoadPaletteColors
-:none       rtl
+:none
+:setlayout
+            rtl
 
 ; UpdatePalette
 ;

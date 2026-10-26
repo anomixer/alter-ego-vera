@@ -125,6 +125,7 @@ RenderDraw ENT
             FIN
 
             jsr   _ShowDebugInfo
+            jsr   MapOAMLayout
 
 ; The game's render screen draws the renders it handles (C = 1, A = the DirtyBits to keep), and the
 ; engine's renderer the rest
@@ -142,6 +143,62 @@ RenderDraw ENT
             stz   DirtyBits
             plb
             rtl
+
+; Add Ego: map the NES sprite Y values into the compact HUD/playfield bands.
+; CustomRender turns LayoutActiveAbs on when the game (not the title) is showing,
+; so the mapping follows the game screen.
+            mx    %00
+MapOAMLayout
+            lda   LayoutActiveAbs
+            beq   :inactive
+            lda   spriteCount
+            beq   :out
+            ldx   #0
+            sep   #$20
+:loop
+            lda   OAM_COPY,x
+            cmp   #200
+            bcs   :hide
+            cmp   #48
+            bcc   :hud
+            sec
+            sbc   #31                 ; playfield: NES 48 -> SHR 17
+            bra   :store
+:hud
+            cmp   #16
+            bcc   :zero
+            sec
+            sbc   #16                 ; HUD: NES 16 -> SHR 0
+            bra   :store
+:zero
+            lda   #0
+            bra   :store
+:hide
+            lda   #255                ; y=240/255 is the game's "hidden" value
+:store
+            sta   OAM_COPY,x
+            inx
+            inx
+            inx
+            inx
+            cpx   spriteCount
+            bcc   :loop
+            bra   :out
+
+:inactive
+            rep   #$20
+            lda   #0
+            sta   LayoutActiveAbs
+            sta   YOffsetAbs
+:out
+            rep   #$20
+            rts
+
+YOffsetAbs        ENT
+                  dw    0
+LayoutActiveAbs   ENT
+                  dw    0
+
 
 ; The PPUMASK enable bits, latched by RenderLatch (moved here from ControlBits.s)
 ;

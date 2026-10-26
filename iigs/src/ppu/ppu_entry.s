@@ -16,12 +16,6 @@
 ; Start-up (scaffold.s NES_StartUp)
 PPUStartUpL ENT
 
-; Diagnostic: border white on entry to PPUStartUpL
-            sep   #$20
-            lda   #$0F
-            stal  $E0C034
-            rep   #$20
-
             phb
             phk
             plb

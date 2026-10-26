@@ -52,6 +52,7 @@ SHIM_YIELD_IMPL
             jmp   SHIM_YIELD_IMPL
 
             ; $7E30-$7E5C  APU write trampolines used by FamiTone2
+            ds    3                    ; align with SHIM_APU_* at $7E30
             jmp   STA_4000
             jmp   STA_4001
             jmp   STA_4002

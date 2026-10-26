@@ -10,23 +10,24 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (259,395 bytes)
-- **Current screen:** ![Alter Ego running on GSplus](docs/screenshots/shot_y0_upper.png)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (268,266 bytes)
+- **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_game_audio.png)
+- **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title_prompt.png)
 
 ## Current status (2026-10-27, branch `test/gs`)
 
-- Boots on GSplus; title → level 0 is playable.
+- Boots on GSplus; title → level 0 is playable, with music and SFX enabled.
 - Playfield is the NES 32×20 tile map at **256×200** displayed inside the 320×200 SHR screen.
-- Level name (`HELLO WORLD`), the top-left protagonist/clone counters, the player and the enemies are
-  all drawn; **the full sprite bodies are visible in the current image**.
-- `y_offset` is **0** in the committed configuration. Any non-zero `y_offset` tested so far removed
-  the upper half of the 8×16 character/enemy sprites; that regression is documented in `AGENTS.md`.
-- The NES bottom frame is still outside the 200-line viewport.
-- The remaining layout request (move `HELLO WORLD` up, move the playfield up, and make the gap about
-  one pixel) is **not implemented yet**; it needs the level name/HUD and the playfield to be rendered
-  as separate bands rather than moving the whole background with `y_offset`.
-- Audio is disabled in this image. The audio-enabled builds tried so far crashed GSplus with
-  `Emulated state corrupt`; the working application is built from the audio-off PRG.
+- Compact layout: the HUD (level name, man/ego counters) shares the top 16 SHR lines, a single
+  1-pixel separator follows, the playfield is shifted up to lines 16–152, and the NES bottom frame
+  occupies lines 153–199.  Gameplay sprites are mapped into that layout.
+- HUD is horizontally fixed (`NES_SetScroll` x=0, y=0); only the playfield and bottom frame use the
+  game scroll.  The HUD activation check uses the `OAM_COPY` first word, not `spriteCount`.
+- Audio is the original FamiTone2 driver and data, routed through the silky-gs APU model.  FamiTone
+  is 8-bit code and its APU trampolines start at `$7E30`; both details are required, otherwise the
+  status write corrupts the following APU instructions (the old `Emulated state corrupt` crash).
+- A host loopback capture of GSplus gameplay measured RMS 3532 / peak 27610, confirming that the
+  emulator is producing the game's music/SFX, not just running silently.
 
 ## Repository layout
 
@@ -59,9 +60,11 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (259,395 bytes). The input
-`src/games/alterego/prg.bin` must stay exactly 32,768 bytes; `prg.bin` in this snapshot is the
-audio-off baseline that produced the committed image.
+The build prints the segment sizes and writes `AlterEgoGS` (268,266 bytes). The input
+`src/games/alterego/prg.bin` must stay exactly 32,768 bytes; the committed `prg.bin` is the
+audio-enabled FamiTone build that produced the committed image.  The audio PRG is linked from the
+cc65 objects in `build/silky` (the same `game.o`/`audio_silky.o` used here); no source rebuild is
+needed for a normal app rebuild if `prg.bin` is already present.
 
 ## Repackage the boot image
 
@@ -70,8 +73,8 @@ Cadius replaces a file in place; stage the app under its ProDOS name first:
 ```powershell
 cd iigs
 New-Item -ItemType Directory tmp\repackage -Force | Out-Null
-Copy-Item src\games\alterego\AlterEgoGS tmp\repackage\AlterEgoGS.S16 -Force
-& C:\dev\cadius.exe REPLACEFILE .\emu\AlterEgoJml.2mg /ALTEREGO tmp\repackage\AlterEgoGS.S16
+Copy-Item src\games\alterego\AlterEgoGS 'tmp\repackage\AlterEgoGS.S16#B3DB03' -Force
+& C:\dev\cadius.exe REPLACEFILE .\emu\AlterEgoJml.2mg /ALTEREGO 'tmp\repackage\AlterEgoGS.S16#B3DB03'
 ```
 
 The image in `emu/` is a build artifact as well as the reference image, so replace it deliberately.
@@ -85,9 +88,9 @@ Start-Process C:\dev\emu\GSplus\gsplus.exe `
   -ArgumentList '-cfg', (Resolve-Path .\emu\gsplus-alterego-jml.kegs)
 ```
 
-Wait about **15 seconds** for the boot, then press **Return twice** (credits, then start). Earlier
-inputs are lost; GSplus needs the window focus. The `.kegs` path is absolute, so edit `s7d1` if the
-repository is checked out somewhere else.
+Wait about **20 seconds** for the boot, then press **Return** at the title. Earlier inputs are lost;
+GSplus needs the window focus. The `.kegs` path is absolute, so edit `s7d1` if the repository is
+checked out somewhere else.
 
 ## Notes on the port
 

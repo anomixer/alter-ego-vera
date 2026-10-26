@@ -28,25 +28,26 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 |---|---|
 | Image | `iigs/emu/AlterEgoJml.2mg` |
 | Size | 10,485,824 bytes |
-| SHA-256 | `5FDA667816A4BF93D95A6FF78CA9F63F4D3549D113D0638F1A5DABF3D3191B5E` |
-| App | `iigs/src/games/alterego/AlterEgoGS`, 259,395 bytes |
-| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes |
-| `__ROM0_LAST__` | `00F6B3` |
+| SHA-256 | `B61409B8D5ECDEE798BA57256363D2F17986BD2AECC1AF1D4206C0788FEA4E1D` |
+| App | `iigs/src/games/alterego/AlterEgoGS`, 268,266 bytes |
+| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (audio-enabled FamiTone build) |
+| SHA-256 (PRG) | `747E44A9A8592D8A0929E2EF4BF0AC775AD42C918F43768F92CAB9D0A5941B96` |
 | GSplus config | `iigs/emu/gsplus-alterego-jml.kegs` |
 
-Current screen evidence: `iigs/docs/screenshots/shot_y0_upper.png`.
+Current screen evidence: `iigs/docs/screenshots/shot_final_game_audio.png` (gameplay) and
+`shot_final_title_prompt.png` (title with PRESS START).
 
-### Current visual state
+### Current visual/audio state
 
-- Boots; Return twice starts level 0.
-- Player and enemies are visible **with upper bodies** in this image. This was confirmed by the user
-  on the `y_offset=0` build.
-- `HELLO WORLD` (level name) and the top-left protagonist/clone counters are visible.
-- The playfield frame top is visible; the **bottom** NES frame is still cut off by the 200-line SHR
-  viewport.
-- The user's next layout request is still open: move `HELLO WORLD` further up, move the playfield
-  further up, and reduce their gap to roughly **one pixel**. This is not done yet in the committed
-  image.
+- Boots; Return at the title starts level 0.  Music and SFX are enabled and audible in GSplus
+  (host loopback capture RMS 3532, peak 27610).
+- Compact layout is implemented: HUD at SHR lines 0–15, 1-pixel separator at line 16, playfield at
+  lines 16–152, bottom NES frame at 153–199; the rest of the SHR screen is blank.
+- `HELLO WORLD` and the man/ego counters are in the fixed HUD; the playfield scroll is separate.
+  Player/enemy sprites are mapped into the compact layout and are fully visible.
+- Audio root cause found and fixed: FamiTone's `$7E30` APU trampolines were actually assembled at
+  `$7E2D`, and FamiTone is 8-bit code.  The table is now padded to `$7E30` and `crt0` sets `sep #$20`
+  before the FamiTone init calls.  This eliminated the `Emulated state corrupt` crash.
 
 ### Build (verified in the snapshot)
 

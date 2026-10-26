@@ -24,38 +24,14 @@ PPUStartUp
         sta   patch3+2
         sta   patch4+2
 
-; Diagnostic: border white after compile-bank patch
-        sep   #$20
-        lda   #$03
-        stal  $E0C034
-        rep   #$20
-
         jsr   SprCacheInit              ; Empty compiled sprite cache; all of the slots are free (the
                                         ; dispatch, csd, takes each slot's bank from its entry)
-
-; Diagnostic: border blue after SprCacheInit
-        sep   #$20
-        lda   #$0A
-        stal  $E0C034
-        rep   #$20
 
 ; Clear / initialize any of the tracking queues
 
         jsr   PPUResetQueues
 
-; Diagnostic: border green after PPUResetQueues
-        sep   #$20
-        lda   #$0C
-        stal  $E0C034
-        rep   #$20
-
         jsr   _InitBTable               ; The static PEA row address table
-
-; Diagnostic: border yellow after _InitBTable
-        sep   #$20
-        lda   #$03
-        stal  $E0C034
-        rep   #$20
 
 ; Set the mirroring mode that the cartridge is configured with at power on.  NES_StartUp
 ; leaves it in PendingMirrorMode.
@@ -64,22 +40,10 @@ PPUStartUp
         jsr   PPUSetMirrorMode
         stz   PendingMirrorMode
 
-; Diagnostic: border orange after PPUSetMirrorMode
-        sep   #$20
-        lda   #$06
-        stal  $E0C034
-        rep   #$20
-
 ; Initialize the CIRAM-to-PEA_Field mappings. This is invarient to the choice of mirroring
 ; but needs to happen after other tables are filled in.
 
         jsr   _InitCIRAMTileMapping
-
-; Diagnostic: border magenta after _InitCIRAMTileMapping
-        sep   #$20
-        lda   #$08
-        stal  $E0C034
-        rep   #$20
 
         DO    ENABLE_DIRTY_RENDERING
         jsr   gridStartUp               ; Static tables for the grid dirty renderer
@@ -93,12 +57,6 @@ PPUStartUp
         inx
         cpx   #$20
         bcc   :loop
-
-; Diagnostic: border $0E after palette sentinel loop
-        sep   #$20
-        lda   #$0E
-        stal  $E0C034
-        rep   #$20
 
         clc
         rts
