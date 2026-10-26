@@ -156,12 +156,10 @@ baseline.
 
 ## Push status
 
-- Local commit on branch `test/gs` contains the snapshot, docs and image.
-- `git push -u origin test/gs` was attempted on 2026-10-27 and failed with **403**: the credential is
-  authenticated as `anomixer`, but `origin` is `avshabanov/alter-ego` and that account has no write
-  permission. `https://github.com/anomixer/alter-ego` does not exist, so there is no fork to push to
-  yet.
-- The branch is committed locally and ready; add/choose the correct writable remote before pushing.
+- Branch **`test/gs`** was pushed to `origin` on 2026-10-27:
+  `https://github.com/anomixer/alter-ego-vera`.
+- Commit `4cfafc3` contains the `iigs/` snapshot (640 files, current 2mg, docs and work log).
+- The existing VERA port at the repository root was not modified; `iigs/` is additive.
 
 ## Next steps
 

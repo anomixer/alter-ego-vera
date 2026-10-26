@@ -8,6 +8,12 @@ Alter Ego. The original NES source is available at
 
 ![Alter Ego gameplay running on Apple II VERA](2.png)
 
+## Other Apple II targets
+
+- **Apple IIgs / silky-gs:** the IIgs port snapshot lives under
+  [`iigs/`](iigs/README.md), with its own build instructions, current GSplus image and work log. It is
+  additive and does not replace the VERA sources in this repository.
+
 ## Build and run
 
 The image builder and packer are kept in this repository. It bundles the Cadius
