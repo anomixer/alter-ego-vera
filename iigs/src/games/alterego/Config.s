@@ -12,10 +12,9 @@ DIRECT_OAM_READ equ $200
 OAM_START_INDEX equ 0
 OAM_END_INDEX equ 64
 
-; Keep the full-screen renderer for the PoC: the title changes its nametable
-; and palette during fades, and the dirty renderer is an optimization we can
-; add after the basic pipeline is proven.
-ENABLE_DIRTY_RENDERING equ 0
+; Gameplay uses the dirty-grid renderer; the title/credits fall back to the
+; full renderer and keep YOffsetAbs=31.
+ENABLE_DIRTY_RENDERING equ 1
 
 SPR_PIXEL_SHIFT equ 1
 NO_VERTICAL_CLIP equ 0
@@ -33,6 +32,7 @@ CONFIG_GAME_MENU equ 0
 
 SHOW_DEBUG_VARS equ 0
 RENDER_VBL_COUNT equ 0
+GRID_COMPACT_SPRITES equ 1
 NO_TILE_EXCLUDE equ 1
 
 ; Show the first 200 NES scanlines (the IIgs SHR screen height) from the top of
@@ -41,9 +41,9 @@ NO_TILE_EXCLUDE equ 1
 y_offset_rows equ 0
 y_height_rows equ 25
 
-y_offset equ 0
+y_offset equ 16
 y_height equ {y_height_rows*8}
-min_nes_y equ y_offset
+min_nes_y equ 0
 max_nes_y equ 249
 
 x_offset equ 16

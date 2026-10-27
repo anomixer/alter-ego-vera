@@ -77,15 +77,14 @@ InitPlayfield
 
             mx    %00
 
-; CUSTOM_RENDER_SCREEN.  Four bands, each with its own source offset:
-; HUD, one-pixel separator, playfield, bottom frame / blank lines.
+; CUSTOM_RENDER_SCREEN.  Gameplay uses one continuous source band: SHR 0-199
+; maps to NES 16-215 through the grid's y_offset.  The title/credits keep the
+; full renderer and their own vertical lift.
 CustomRender ENT
             ldal  LayoutActiveAbs
             and   #$00FF
             bne   :draw
 
-            ; The title's star field uses many sprites; the game's playfield
-            ; has only the player, the enemies and their shots.
             ldal  OAM_COPY
             beq   :inactive
             lda   #1
@@ -93,48 +92,25 @@ CustomRender ENT
             bra   :draw
 
 :inactive
-            ; Credits/title are full-screen NES content; lift them so the text
-            ; sits vertically centred in the 200-line SHR viewport.
             lda   #31
             stal  YOffsetAbs
-            clc
-            rtl
-
-:draw
-            ; HUD: NES rows 2-3 -> SHR 0-15, fixed at the top and not scrolled
             lda   #0
-            tay
-            lda   #0
-            tax
-            ldal  _ppuctrl
-            jsl   NES_SetScroll
-            lda   #16
-            stal  YOffsetAbs
-            lda   #0
-            ldx   #17
+            ldx   #200
             jsl   PPU_DrawScreenRange
-
-            ; Playfield through the bottom frame: NES rows 33-215 -> SHR 17-199.
-            ; One continuous source range avoids a gap or a repeated band at the
-            ; bottom, and lands the frame flush on the last SHR line.
-            ldal  _ppuscroll_y
-            tay
-            ldal  _ppuscroll_x
-            tax
-            ldal  _ppuctrl
-            jsl   NES_SetScroll
-            lda   #16
-            stal  YOffsetAbs
-            lda   #17
-            ldx   #183
-            jsl   PPU_DrawScreenRange
-
             lda   #0
             stal  YOffsetAbs
             lda   #0
             sec
             rtl
 
+:draw
+            ; The grid renderer draws the playfield from its dirty cells.  Keep
+            ; the same source offset for the fallback full renderer.
+            lda   #16
+            stal  YOffsetAbs
+            lda   #0
+            clc
+            rtl
             mx    %00
 
 ; Palette management generated from palettes/

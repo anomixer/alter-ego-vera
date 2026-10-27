@@ -56,7 +56,13 @@ gqInitTables
             ldy   #0
 :yl         tya
             sec
+            DO    GRID_COMPACT_SPRITES
+            bra   :ycompact
+            FIN
+            DO    1-GRID_COMPACT_SPRITES
             sbc   #y_offset
+            FIN
+:ycompact
             sta   gqCell                  ; s, signed
             and   #$0007
             tax

@@ -43,15 +43,19 @@ and `shot_config_menu.png` (runtime options menu).
 
 - Boots; Return at the title starts level 0.  Music and SFX are enabled and audible in GSplus
   (host loopback capture RMS 3532, peak 27610).
-- Final layout: HUD at SHR lines 0–16, then one continuous playfield+frame band at lines 17–199
-  sourced from NES rows 33–215.  The NES outer frame now ends **flush on SHR line 199**; there is no
-  blank strip below it.
-- Credits and title are treated as full-screen NES content and drawn with `YOffsetAbs = 31`; this
-  lifts the text/logo from the too-low position and centres both screens in the 200-line SHR area.
-- `HELLO WORLD` and the man/ego counters are in the fixed HUD; the playfield scroll is separate.
-  Player/enemy sprites are visible after the baseline game source was restored, and the player moves
-  with input (verified by screenshot before/after a right-left run).  Sprite Y mapping is uniform:
-  NES 16–215 → SHR 0–199.
+- Final layout: one continuous gameplay band, SHR lines 0–199 sourced from NES rows 16–215
+  (`Config.s`: `y_offset equ 16`).  The HUD stats, outer frame and playfield share that band; there
+  is no separate HUD source range and no blank strip below the frame (it ends flush on SHR line 199).
+- The title/credits keep their own full-screen treatment with `YOffsetAbs = 31`, lifting the logo and
+  text into the 200-line SHR area.
+- Dirty-grid rendering is enabled (`ENABLE_DIRTY_RENDERING=1`, `GRID_COMPACT_SPRITES=1`).  Background
+  cells are emitted by the grid; the compact sprite mapping keeps OAM screen coordinates (stats,
+  player/enemies, pause menu) aligned with the NES 16–215 band.  The C fallback full renderer uses the
+  same `YOffsetAbs = 16`.
+- `HELLO WORLD` and the man/ego counters are in the fixed top band; the playfield does not scroll.
+  Player/enemy sprites and the pause menu are visible, and the player moves with input.
+- Pause entry dims the palette and draws RESUME/RESTART as sprites; resuming restores the palette,
+  clears the menu OAM and redraws the stats.  Up/Down selects, Return confirms.
 - Audio root cause found and fixed: FamiTone's `$7E30` APU trampolines were actually assembled at
   `$7E2D`, and FamiTone is 8-bit code.  The table is now padded to `$7E30` and `crt0` sets `sep #$20`
   before the FamiTone init calls.  This eliminated the `Emulated state corrupt` crash.
@@ -118,29 +122,35 @@ Start-Process C:\dev\emu\GSplus\gsplus.exe `
   -ArgumentList '-cfg', (Resolve-Path C:\dev\alter-ego-vera\iigs\emu\gsplus-alterego-jml.kegs)
 ```
 
-Wait about **24 seconds**, focus the GSplus window, then send **Return once** at the title. Earlier
-Returns (8 s) are lost.  For the options menu, focus the window and send `?` with
+Wait about **24 seconds** at 16 MHz (or **2–3 minutes** with `g_limit_speed = 2`, the factory
+2.8 MHz), focus the GSplus window, then send **Return once** at the title. Earlier Returns are lost.  For the options menu, focus the window and send `?` with
 `SendKeys`; see the runtime-options section above. Screenshot with the GSplus `MainWindowHandle`
 and `CopyFromScreen`; raise the window to topmost before capture if the DSH GUI overlaps it.
 
 ## Hard constraints found in this port
 
-### `y_offset` and upper sprite bodies
+### `y_offset`, dirty grid and sprite alignment
 
-The current configuration is:
+The working configuration is:
 
-- `iigs/src/games/alterego/Config.s`: `y_offset equ 0`
-- `iigs/src/ppu/ppu.s`: `SPR_SETUP` adds `#$2000+x_offset` (no `y_offset` subtraction)
+- `iigs/src/games/alterego/Config.s`: `y_offset equ 16`, `GRID_COMPACT_SPRITES equ 1`
+- `iigs/src/games/alterego/ppu/ppu_grid_quads.s` (the game-local copy actually built): the
+  `gqInitTables` Y loop skips the `sbc #y_offset` when `GRID_COMPACT_SPRITES=1`
+- `Main.s` gameplay: `YOffsetAbs=16`, return C=0 so the grid draws; no `NES_SetScroll` and no
+  `StartY=16`
 
-With a non-zero `y_offset` the background scrolls up, but in this port the **upper half of the 8×16
-player/enemy sprites disappears** (feet remain). This was reproduced at `y_offset=2`, `4`, `8`; at
-`y_offset=0` the bodies are complete. Do not "just bump `y_offset`" for the layout request without
-verifying the sprite tops on GSplus. The earlier workaround of removing the `y_offset` subtraction
-from `SPR_SETUP` did not fix it by itself in the tested y2 build.
+Two traps, both seen in this port:
 
-The planned correct direction for the layout request is to render the level name/HUD and the
-playfield as separate bands, so only the playfield moves; the naive global `y_offset` is not safe as
-implemented.
+1. If the custom renderer returns C=0, `RenderScreen` calls `_SetScroll` again from the latched
+   `_ppuscroll` *after* the custom code.  Setting `StartY=16` inside the custom renderer is therefore
+   discarded; the source offset must be the configured `y_offset`, not the runtime start line.
+2. The C side puts OAM in SHR screen coordinates.  With `y_offset=16`, the grid must not subtract 16
+   again for sprites; without the compact flag the menu/stats and player sprites move or go negative
+   and GSplus reports `Code: RED Emulated state corrupt`.  Keep `GRID_COMPACT_SPRITES=1` in the
+   built copy and verify the game-local `ppu_grid_quads.s`, not just `src/ppu/`.
+
+The 2.8 MHz target and the 16 MHz build use the same single gameplay band; the title/credits are the
+only screens drawn with `YOffsetAbs=31`.
 
 ### Conditional blitter scrolling is unsafe
 

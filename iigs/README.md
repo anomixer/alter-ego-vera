@@ -20,14 +20,15 @@ current bootable 3.5" image:
 
 - Boots on GSplus; title → level 0 is playable, with music and SFX enabled.
 - Playfield is the NES 32×20 tile map at **256×200** displayed inside the 320×200 SHR screen.
-- Compact layout: the HUD (level name, man/ego counters) occupies SHR lines 0–16, the playfield and
-  NES bottom frame are one continuous band at lines 17–199, and the outer frame lands flush on the
-  last SHR line (no blank rows below it).  Gameplay sprites use the same −16 NES→SHR Y mapping.
+- Single gameplay band: SHR lines 0–199 map to NES rows 16–215 (`y_offset=16`).  The HUD stats,
+  outer frame and playfield share the same source band; the frame lands flush on the last SHR line
+  (no blank rows below it).  Gameplay sprites use compact OAM coordinates (`GRID_COMPACT_SPRITES=1`).
 - The credits and title screens are full-screen NES content; they render with a `YOffsetAbs` of 31,
   which lifts them so the credits block and the ALTER EGO / PRESS START logo are vertically centred
   in the 200-line SHR viewport.
-- HUD is horizontally fixed (`NES_SetScroll` x=0, y=0); only the playfield and bottom frame use the
-  game scroll.  The HUD activation check uses the `OAM_COPY` first word, not `spriteCount`.
+- Gameplay uses the dirty-grid renderer (`ENABLE_DIRTY_RENDERING=1`): only changed background cells
+  and sprites are emitted each frame.  The HUD activation check uses the `OAM_COPY` first word, not
+  `spriteCount`.
 - Audio is the original FamiTone2 driver and data, routed through the silky-gs APU model.  FamiTone
   is 8-bit code and its APU trampolines start at `$7E30`; both details are required, otherwise the
   status write corrupts the following APU instructions (the old `Emulated state corrupt` crash).
@@ -65,7 +66,7 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (268,275 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (268,187 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes; the committed `prg.bin` is the
 audio-enabled FamiTone build that produced the committed image.  The audio PRG is linked from the
 cc65 objects in `build/silky` (the same `game.o`/`audio_silky.o` used here); no source rebuild is
@@ -93,9 +94,14 @@ Start-Process C:\dev\emu\GSplus\gsplus.exe `
   -ArgumentList '-cfg', (Resolve-Path .\emu\gsplus-alterego-jml.kegs)
 ```
 
-Wait about **20 seconds** for the boot, then press **Return** at the title. Earlier inputs are lost;
-GSplus needs the window focus. The `.kegs` path is absolute, so edit `s7d1` if the repository is
-checked out somewhere else.
+Wait about **20 seconds** for the boot at 16 MHz, or **2–3 minutes** at the factory 2.8 MHz
+(`g_limit_speed = 2`), then press **Return** at the title. Earlier inputs are lost; GSplus needs
+the window focus. The `.kegs` path is absolute, so edit `s7d1` if the repository is checked out
+somewhere else.
+
+Gameplay now uses the dirty-grid path above; on the 2.8 MHz setting it keeps the original
+SHR 0–199 / NES 16–215 mapping, so the playfield position does not move while only dirty cells are
+redrawn.
 
 ## Controls
 
@@ -160,12 +166,13 @@ the logical NES names below (**A** = Command, **B** = Option, **Start** = Return
 ## Notes on the port
 
 - The image is **320×200 SHR**; the playfield is 128 SHR bytes (256 px) wide at `x_offset=16`, with
-  16-byte side margins. NES scanlines 33–215 are shown in the game band.
+  16-byte side margins. NES scanlines 16–215 are shown in the gameplay band.
 - The level map is 32×20 tiles at NES nametable rows 6–25; the level name and counters are in the top
   rows.
-- `y_offset` scrolls the rendered background up, but also shifts the sprite address in `SPR_SETUP`.
-  In this port a non-zero offset broke the top half of 8×16 sprites; `y_offset=0` and an unshifted
-  `SPR_SETUP` keep the characters whole. See `AGENTS.md` before changing it.
+- `y_offset=16` provides the band offset.  The game-local `ppu_grid_quads.s` skips its sprite Y
+  subtraction when `GRID_COMPACT_SPRITES=1`, because OAM already carries SHR screen coordinates;
+  removing that flag double-shifts the sprites and triggers `Code: RED`.  The custom renderer must not
+  set `StartY=16` — `RenderScreen` resets the start line after the custom call.  See `AGENTS.md`.
 - `scripts/check-xbank.js` runs on every build: 16-bit references from MAIN/ENGINE into another bank
   fail the build. `__ROM0_LAST__` is `00F6B3`; `prg.bin` overflow/underflow must be checked.
 

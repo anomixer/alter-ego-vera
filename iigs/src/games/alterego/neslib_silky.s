@@ -539,11 +539,15 @@ _pad_poll:
 	bne	@k4
 	lda	#$20
 	bra	@store
-@k4:	cmp	#$0D		; Return
+@k4:	cmp	#$0D		; Return (press start / pause)
 	beq	@start
 	cmp	#$24		; Return (ADB code)
 	beq	@start
 	cmp	#$03		; keypad Enter
+	beq	@start
+	cmp	#$50		; P (pause/start)
+	beq	@start
+	cmp	#$70		; p
 	bne	@k5
 @start:	lda	#$08
 	bra	@store
