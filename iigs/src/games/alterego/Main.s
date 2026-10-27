@@ -93,7 +93,9 @@ CustomRender ENT
             bra   :draw
 
 :inactive
-            lda   #0
+            ; Credits/title are full-screen NES content; lift them so the text
+            ; sits vertically centred in the 200-line SHR viewport.
+            lda   #31
             stal  YOffsetAbs
             clc
             rtl

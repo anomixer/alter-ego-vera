@@ -12,6 +12,7 @@ current bootable 3.5" image:
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
 - **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (268,253 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
+- **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
 
 ## Current status (2026-10-27, branch `test/gs`)
@@ -21,6 +22,9 @@ current bootable 3.5" image:
 - Compact layout: the HUD (level name, man/ego counters) occupies SHR lines 0–16, the playfield and
   NES bottom frame are one continuous band at lines 17–199, and the outer frame lands flush on the
   last SHR line (no blank rows below it).  Gameplay sprites use the same −16 NES→SHR Y mapping.
+- The credits and title screens are full-screen NES content; they render with a `YOffsetAbs` of 31,
+  which lifts them so the credits block and the ALTER EGO / PRESS START logo are vertically centred
+  in the 200-line SHR viewport.
 - HUD is horizontally fixed (`NES_SetScroll` x=0, y=0); only the playfield and bottom frame use the
   game scroll.  The HUD activation check uses the `OAM_COPY` first word, not `spriteCount`.
 - Audio is the original FamiTone2 driver and data, routed through the silky-gs APU model.  FamiTone

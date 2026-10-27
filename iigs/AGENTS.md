@@ -28,15 +28,15 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 |---|---|
 | Image | `iigs/emu/AlterEgoJml.2mg` |
 | Size | 10,485,824 bytes |
-| SHA-256 | `466B174E044C6403F32D68FB7892E637AF99D0A672DAE37AE20D422850E36183` |
+| SHA-256 | `AC22AACF90AED617676D15B17142FCDFCE96E4FE8270031E233A9042ECEFA2F0` |
 | App | `iigs/src/games/alterego/AlterEgoGS`, 268,253 bytes |
-| App SHA-256 | `77963545A5510A040E97B7B592432C61B6799807C926C688D68C1FCF702A13D6` |
+| App SHA-256 | `3730EA18F05C917CA8E5B57CC25C0E5811A6803EF6A18A76BDD071091AC2FB2F` |
 | PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (audio-enabled FamiTone build) |
 | SHA-256 (PRG) | `28328DB5D17093BC5A40A30007CE811A3EA2EE2D0683CF95BDF667E1F9956855` |
 | GSplus config | `iigs/emu/gsplus-alterego-jml.kegs` |
 
-Current screen evidence: `iigs/docs/screenshots/shot_final_aligned_game.png` (gameplay) and
-`shot_final_title.png` (title with PRESS START).
+Current screen evidence: `iigs/docs/screenshots/shot_final_aligned_game.png` (gameplay),
+`shot_final_credits.png` (centred credits) and `shot_final_title.png` (centred title with PRESS START).
 
 ### Current visual/audio state
 
@@ -45,6 +45,8 @@ Current screen evidence: `iigs/docs/screenshots/shot_final_aligned_game.png` (ga
 - Final layout: HUD at SHR lines 0–16, then one continuous playfield+frame band at lines 17–199
   sourced from NES rows 33–215.  The NES outer frame now ends **flush on SHR line 199**; there is no
   blank strip below it.
+- Credits and title are treated as full-screen NES content and drawn with `YOffsetAbs = 31`; this
+  lifts the text/logo from the too-low position and centres both screens in the 200-line SHR area.
 - `HELLO WORLD` and the man/ego counters are in the fixed HUD; the playfield scroll is separate.
   Player/enemy sprites are visible after the baseline game source was restored, and the player moves
   with input (verified by screenshot before/after a right-left run).  Sprite Y mapping is uniform:
