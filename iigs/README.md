@@ -10,17 +10,17 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (268,266 bytes)
-- **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_game_audio.png)
-- **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title_prompt.png)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (268,253 bytes)
+- **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
+- **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
 
 ## Current status (2026-10-27, branch `test/gs`)
 
 - Boots on GSplus; title → level 0 is playable, with music and SFX enabled.
 - Playfield is the NES 32×20 tile map at **256×200** displayed inside the 320×200 SHR screen.
-- Compact layout: the HUD (level name, man/ego counters) shares the top 16 SHR lines, a single
-  1-pixel separator follows, the playfield is shifted up to lines 16–152, and the NES bottom frame
-  occupies lines 153–199.  Gameplay sprites are mapped into that layout.
+- Compact layout: the HUD (level name, man/ego counters) occupies SHR lines 0–16, the playfield and
+  NES bottom frame are one continuous band at lines 17–199, and the outer frame lands flush on the
+  last SHR line (no blank rows below it).  Gameplay sprites use the same −16 NES→SHR Y mapping.
 - HUD is horizontally fixed (`NES_SetScroll` x=0, y=0); only the playfield and bottom frame use the
   game scroll.  The HUD activation check uses the `OAM_COPY` first word, not `spriteCount`.
 - Audio is the original FamiTone2 driver and data, routed through the silky-gs APU model.  FamiTone
@@ -60,7 +60,7 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (268,266 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (268,253 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes; the committed `prg.bin` is the
 audio-enabled FamiTone build that produced the committed image.  The audio PRG is linked from the
 cc65 objects in `build/silky` (the same `game.o`/`audio_silky.o` used here); no source rebuild is
@@ -95,7 +95,7 @@ checked out somewhere else.
 ## Notes on the port
 
 - The image is **320×200 SHR**; the playfield is 128 SHR bytes (256 px) wide at `x_offset=16`, with
-  16-byte side margins. NES scanlines 0–199 are shown.
+  16-byte side margins. NES scanlines 33–215 are shown in the game band.
 - The level map is 32×20 tiles at NES nametable rows 6–25; the level name and counters are in the top
   rows.
 - `y_offset` scrolls the rendered background up, but also shifts the sprite address in `SPR_SETUP`.

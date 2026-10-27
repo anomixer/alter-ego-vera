@@ -28,23 +28,27 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 |---|---|
 | Image | `iigs/emu/AlterEgoJml.2mg` |
 | Size | 10,485,824 bytes |
-| SHA-256 | `B61409B8D5ECDEE798BA57256363D2F17986BD2AECC1AF1D4206C0788FEA4E1D` |
-| App | `iigs/src/games/alterego/AlterEgoGS`, 268,266 bytes |
+| SHA-256 | `466B174E044C6403F32D68FB7892E637AF99D0A672DAE37AE20D422850E36183` |
+| App | `iigs/src/games/alterego/AlterEgoGS`, 268,253 bytes |
+| App SHA-256 | `77963545A5510A040E97B7B592432C61B6799807C926C688D68C1FCF702A13D6` |
 | PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (audio-enabled FamiTone build) |
-| SHA-256 (PRG) | `747E44A9A8592D8A0929E2EF4BF0AC775AD42C918F43768F92CAB9D0A5941B96` |
+| SHA-256 (PRG) | `28328DB5D17093BC5A40A30007CE811A3EA2EE2D0683CF95BDF667E1F9956855` |
 | GSplus config | `iigs/emu/gsplus-alterego-jml.kegs` |
 
-Current screen evidence: `iigs/docs/screenshots/shot_final_game_audio.png` (gameplay) and
-`shot_final_title_prompt.png` (title with PRESS START).
+Current screen evidence: `iigs/docs/screenshots/shot_final_aligned_game.png` (gameplay) and
+`shot_final_title.png` (title with PRESS START).
 
 ### Current visual/audio state
 
 - Boots; Return at the title starts level 0.  Music and SFX are enabled and audible in GSplus
   (host loopback capture RMS 3532, peak 27610).
-- Compact layout is implemented: HUD at SHR lines 0–15, 1-pixel separator at line 16, playfield at
-  lines 16–152, bottom NES frame at 153–199; the rest of the SHR screen is blank.
+- Final layout: HUD at SHR lines 0–16, then one continuous playfield+frame band at lines 17–199
+  sourced from NES rows 33–215.  The NES outer frame now ends **flush on SHR line 199**; there is no
+  blank strip below it.
 - `HELLO WORLD` and the man/ego counters are in the fixed HUD; the playfield scroll is separate.
-  Player/enemy sprites are mapped into the compact layout and are fully visible.
+  Player/enemy sprites are visible after the baseline game source was restored, and the player moves
+  with input (verified by screenshot before/after a right-left run).  Sprite Y mapping is uniform:
+  NES 16–215 → SHR 0–199.
 - Audio root cause found and fixed: FamiTone's `$7E30` APU trampolines were actually assembled at
   `$7E2D`, and FamiTone is 8-bit code.  The table is now padded to `$7E30` and `crt0` sets `sep #$20`
   before the FamiTone init calls.  This eliminated the `Emulated state corrupt` crash.
@@ -59,15 +63,15 @@ node build.js
 The verified output is:
 
 ```
-MAIN         23784 -> 22271 bytes
+MAIN         23727 -> 22297 bytes
 STKDP        6470 -> 65 bytes
-ENGINE       31626 -> 26777 bytes
+ENGINE       31638 -> 26789 bytes
 PPU1         61787 -> 58426 bytes
 PPU2         61787 -> 58427 bytes
 CHRDATA      65606 -> 62730 bytes
-AEROM        65828 -> 22946 bytes
+AEROM        65828 -> 31766 bytes
 PPURAM       16454 -> 7753 bytes
-AlterEgoGS: 333342 -> 259395 bytes
+AlterEgoGS: 333297 -> 268253 bytes
 ```
 
 `package.json` `config.merlin32` is `C:\dev\Merlin32.exe`; `config.cadius` is `C:\dev\cadius.exe`.
@@ -132,10 +136,11 @@ If a border/overlay is needed later, it must be gated on a valid game screen and
 
 ### Audio
 
-The current image is built from the **audio-off PRG**. Audio-enabled app builds (264,075 and 268,210
-bytes) crashed GSplus with `Emulated state corrupt`; audio remains unverified. `prg_before_audio.bin`
-in the old silky working tree was the known-good PRG source, and the committed `prg.bin` is that
-baseline.
+The current image is built from the **audio-enabled FamiTone PRG** (`prg.bin`, SHA-256
+`28328DB5…`). The earlier `Emulated state corrupt` crash was fixed by padding the APU trampoline
+table to `$7E30` and keeping the FamiTone init in 8-bit mode (`sep #$20`). A host loopback capture
+of GSplus gameplay measured RMS 3532 / peak 27610, so the current build is audible; do not replace
+`prg.bin` with the old audio-off baseline.
 
 ### Emulator / packaging gotchas
 
@@ -159,18 +164,17 @@ baseline.
 
 - Branch **`test/gs`** was pushed to `origin` on 2026-10-27:
   `https://github.com/anomixer/alter-ego-vera`.
-- Commit `4cfafc3` contains the `iigs/` snapshot (640 files, current 2mg, docs and work log).
+- Commit `1e9114c` (this change) updates the final layout, baseline game source, audio-enabled PRG,
+  boot image, docs and final screenshots.  The earlier snapshot commit was `4cfafc3`.
 - The existing VERA port at the repository root was not modified; `iigs/` is additive.
 
 ## Next steps
 
-1. Implement the pending layout request without reintroducing the upper-body regression: keep the
-   HUD/level name on a fixed band and shift only the playfield band upward, targeting a ~1 px gap
-   between `HELLO WORLD` and the frame. Verify player/enemy tops on GSplus.
-2. Expose the NES bottom frame (or confirm the exact visible crop) after the band split; verify the
-   bottom border on the real image, not only in an offline render.
-3. Revisit audio separately; do not fold it into the layout branch.
-4. Remove/replace the remaining startup diagnostics only after the layout is settled.
+1. Layout, bottom-frame flush and player visibility are now verified on the bootable image.
+2. Keep `prg.bin` as the audio-enabled 32,768-byte FamiTone build; do not rebuild it from the
+   historical audio-off baseline.
+3. Only cleanup left: keep the generated listing/map files out of commits and commit the final
+   app/image/docs on `test/gs`.
 
 ## Provenance
 

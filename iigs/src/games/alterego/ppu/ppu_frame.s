@@ -145,6 +145,7 @@ RenderDraw ENT
             rtl
 
 ; Add Ego: map the NES sprite Y values into the compact HUD/playfield bands.
+; The layout is one continuous -16 shift: NES 16-215 -> SHR 0-199.
 ; CustomRender turns LayoutActiveAbs on when the game (not the title) is showing,
 ; so the mapping follows the game screen.
             mx    %00
@@ -157,21 +158,12 @@ MapOAMLayout
             sep   #$20
 :loop
             lda   OAM_COPY,x
-            cmp   #200
+            cmp   #216
             bcs   :hide
-            cmp   #48
-            bcc   :hud
-            sec
-            sbc   #31                 ; playfield: NES 48 -> SHR 17
-            bra   :store
-:hud
             cmp   #16
-            bcc   :zero
+            bcc   :hide
             sec
-            sbc   #16                 ; HUD: NES 16 -> SHR 0
-            bra   :store
-:zero
-            lda   #0
+            sbc   #16                 ; NES 16-215 -> SHR 0-199
             bra   :store
 :hide
             lda   #255                ; y=240/255 is the game's "hidden" value

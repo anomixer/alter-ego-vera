@@ -109,27 +109,22 @@ CustomRender ENT
             lda   #16
             stal  YOffsetAbs
             lda   #0
-            ldx   #16
+            ldx   #17
             jsl   PPU_DrawScreenRange
 
-            ; Playfield: NES rows 5-22 -> SHR 16-152 (line 16 is the 1-pixel gap)
+            ; Playfield through the bottom frame: NES rows 33-215 -> SHR 17-199.
+            ; One continuous source range avoids a gap or a repeated band at the
+            ; bottom, and lands the frame flush on the last SHR line.
             ldal  _ppuscroll_y
             tay
             ldal  _ppuscroll_x
             tax
             ldal  _ppuctrl
             jsl   NES_SetScroll
-            lda   #31
-            stal  YOffsetAbs
             lda   #16
-            ldx   #137
-            jsl   PPU_DrawScreenRange
-
-            ; Bottom frame and blank lines: NES rows 24-29 -> SHR 153-199
-            lda   #39
             stal  YOffsetAbs
-            lda   #153
-            ldx   #47
+            lda   #17
+            ldx   #183
             jsl   PPU_DrawScreenRange
 
             lda   #0
