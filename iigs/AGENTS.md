@@ -186,9 +186,10 @@ of GSplus gameplay measured RMS 3532 / peak 27610, so the current build is audib
 
 - Branch **`test/gs`** was pushed to `origin` on 2026-10-27:
   `https://github.com/anomixer/alter-ego-vera`.
-- Commit `b81c827` (this change) centres the credits/title screens on top of the final layout,
-  baseline game source, audio-enabled PRG, boot image, docs and screenshots.  The earlier snapshot
-  commits were `81bd24f` and `4cfafc3`.
+- Commit `d3da372` (this change) enables the silky-gs runtime options menu and documents the
+  controls and hidden title-screen inputs.  The previous commits were `b81c827` (centred
+  credits/title on the final layout, baseline game source, audio-enabled PRG, boot image) and
+  `f47dc3e` (centred-title docs).  The earlier snapshot commits were `81bd24f` and `4cfafc3`.
 - The existing VERA port at the repository root was not modified; `iigs/` is additive.
 
 ## Next steps
@@ -196,8 +197,8 @@ of GSplus gameplay measured RMS 3532 / peak 27610, so the current build is audib
 1. Layout, bottom-frame flush and player visibility are now verified on the bootable image.
 2. Keep `prg.bin` as the audio-enabled 32,768-byte FamiTone build; do not rebuild it from the
    historical audio-off baseline.
-3. Only cleanup left: keep the generated listing/map files out of commits and commit the final
-   app/image/docs on `test/gs`.
+3. The final app/image/docs are committed on `test/gs`.  Remaining untracked files are
+   investigation screenshots and are not part of the deliverable.
 
 ## Provenance
 
