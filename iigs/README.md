@@ -66,7 +66,7 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (268,187 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (268,210 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes; the committed `prg.bin` is the
 audio-enabled FamiTone build that produced the committed image.  The audio PRG is linked from the
 cc65 objects in `build/silky` (the same `game.o`/`audio_silky.o` used here); no source rebuild is

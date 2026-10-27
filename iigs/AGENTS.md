@@ -47,7 +47,9 @@ and `shot_config_menu.png` (runtime options menu).
   (`Config.s`: `y_offset equ 16`).  The HUD stats, outer frame and playfield share that band; there
   is no separate HUD source range and no blank strip below the frame (it ends flush on SHR line 199).
 - The title/credits keep their own full-screen treatment with `YOffsetAbs = 31`, lifting the logo and
-  text into the 200-line SHR area.
+  text into the 200-line SHR area.  The title path calls `NES_SetScroll` with the latched
+  `_ppuscroll_x/_ppuscroll_y` before `PPU_DrawScreenRange`, so the 16-frame nametable toggle that
+  blinks **PRESS START** is preserved.
 - Dirty-grid rendering is enabled (`ENABLE_DIRTY_RENDERING=1`, `GRID_COMPACT_SPRITES=1`).  Background
   cells are emitted by the grid; the compact sprite mapping keeps OAM screen coordinates (stats,
   player/enemies, pause menu) aligned with the NES 16–215 band.  The C fallback full renderer uses the

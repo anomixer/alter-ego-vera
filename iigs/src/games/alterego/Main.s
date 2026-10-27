@@ -94,6 +94,17 @@ CustomRender ENT
 :inactive
             lda   #31
             stal  YOffsetAbs
+
+            ; The title blinks PRESS START by toggling the horizontal
+            ; nametable every 16 frames.  Because this custom renderer draws
+            ; the full screen itself, it must latch that scroll before drawing.
+            ldal  _ppuscroll_y
+            tay
+            ldal  _ppuscroll_x
+            tax
+            ldal  _ppuctrl
+            jsl   NES_SetScroll
+
             lda   #0
             ldx   #200
             jsl   PPU_DrawScreenRange
