@@ -164,7 +164,7 @@ of GSplus gameplay measured RMS 3532 / peak 27610, so the current build is audib
 
 - Branch **`test/gs`** was pushed to `origin` on 2026-10-27:
   `https://github.com/anomixer/alter-ego-vera`.
-- Commit `1e9114c` (this change) updates the final layout, baseline game source, audio-enabled PRG,
+- Commit `81bd24f` (this change) updates the final layout, baseline game source, audio-enabled PRG,
   boot image, docs and final screenshots.  The earlier snapshot commit was `4cfafc3`.
 - The existing VERA port at the repository root was not modified; `iigs/` is additive.
 
