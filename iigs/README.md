@@ -10,10 +10,11 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (268,253 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (268,275 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
+- **Runtime options:** ![silky-gs options menu](docs/screenshots/shot_config_menu.png)
 
 ## Current status (2026-10-27, branch `test/gs`)
 
@@ -64,7 +65,7 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (268,253 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (268,275 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes; the committed `prg.bin` is the
 audio-enabled FamiTone build that produced the committed image.  The audio PRG is linked from the
 cc65 objects in `build/silky` (the same `game.o`/`audio_silky.o` used here); no source rebuild is
@@ -95,6 +96,66 @@ Start-Process C:\dev\emu\GSplus\gsplus.exe `
 Wait about **20 seconds** for the boot, then press **Return** at the title. Earlier inputs are lost;
 GSplus needs the window focus. The `.kegs` path is absolute, so edit `s7d1` if the repository is
 checked out somewhere else.
+
+## Controls
+
+The game keeps the original NES control scheme. This is not the VERA port's menu layout:
+
+| Input | NES function |
+|---|---|
+| Arrow keys | D-pad |
+| **Command / Open Apple** | **A** |
+| **Option** | **B** |
+| **Return** | **Start** |
+| **Tab** | **Select** |
+
+At the title, **Return** starts level 1. In game, **Return** opens the pause menu
+(**Up**/**Down** to choose **RESUME** or **RESTART**, then **Return**).
+
+GSplus on Windows swaps Command and Option by default. In that stock configuration the
+physical keys are:
+
+- **Alt** or **F1** → Command / A
+- **Windows key** → Option / B
+
+You can turn off *Swap Command/Option keys* in the GSplus F4 config, or remap A/B in the
+`?` → **INPUT** panel. The game itself always treats Command as A and Option as B.
+
+## silky-gs options
+
+This build turns on the silky-gs runtime options menu (`NO_CONFIG=0` in `Config.s`).
+While the game is running, press **?** (Shift-/) to open it. The top-level panels are:
+
+- **AUDIO** — 60/120/240 Hz mixing rate; this build defaults to 60 Hz.
+- **INPUT** — keyboard type, the four direction keys, and the A/B buttons.
+- **DRIVERS** — keyboard driver selection.
+- **CREDITS** — project credits.
+
+Arrow keys move between items, **Space** toggles or activates the selected item, and
+**Return** accepts the settings and returns to the game.  `CONFIG_VIDEO_MENU`,
+`CONFIG_GAME_MENU`, `CONFIG_INPUT_2P` and `JOYSTICK_SUPPORT` are still off, so the
+corresponding video, game, player-2 and joystick panels are not present.
+
+## Hidden buttons
+
+These are the original NES title-screen secrets; they still work in the IIgs port.  Use
+the logical NES names below (**A** = Command, **B** = Option, **Start** = Return,
+**Select** = Tab):
+
+- **Sound Test** — at the title screen, hold **Command + Option** (A+B), then press
+  **Return**.  Release after the screen starts to fade.  In the sound test, Left/Right
+  chooses the SFX or music bank, Up/Down selects the item, **A** stops music, **B**
+  plays, and **Return** exits.
+- **Cow Level** — at the title screen, hold **Tab** (Select), then press **Return**.
+  The game starts on level 0, the hidden cow level, instead of level 1.
+- **Unlock level skip** — at the title screen, press, one key at a time:
+  **B, Left, A, B, Left, A** (Option, Left, Command, Option, Left, Command).  A menu
+  sound confirms the unlock.  During play, press **Tab** to skip the current level.
+
+> **GSplus note:** with the stock Windows build (*Swap Command/Option keys* = Swapped),
+> use **Alt** or **F1** for Command/A and the **Windows key** for Option/B.  If those
+> keys are awkward, disable the swap in the F4 config or remap A/B in `?` → **INPUT**
+> first; the hidden inputs then use the new A/B keys.
 
 ## Notes on the port
 

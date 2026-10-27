@@ -28,15 +28,16 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 |---|---|
 | Image | `iigs/emu/AlterEgoJml.2mg` |
 | Size | 10,485,824 bytes |
-| SHA-256 | `AC22AACF90AED617676D15B17142FCDFCE96E4FE8270031E233A9042ECEFA2F0` |
-| App | `iigs/src/games/alterego/AlterEgoGS`, 268,253 bytes |
-| App SHA-256 | `3730EA18F05C917CA8E5B57CC25C0E5811A6803EF6A18A76BDD071091AC2FB2F` |
+| SHA-256 | `8A10009113D6A5FE87B350488B895E2E9ACF30368C56AE17BD800885F0F03E3D` |
+| App | `iigs/src/games/alterego/AlterEgoGS`, 268,275 bytes |
+| App SHA-256 | `57B7483BF9140F57E4391B66EDED7C516824CB0A4560FF0DFC94615790672606` |
 | PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (audio-enabled FamiTone build) |
 | SHA-256 (PRG) | `28328DB5D17093BC5A40A30007CE811A3EA2EE2D0683CF95BDF667E1F9956855` |
 | GSplus config | `iigs/emu/gsplus-alterego-jml.kegs` |
 
 Current screen evidence: `iigs/docs/screenshots/shot_final_aligned_game.png` (gameplay),
-`shot_final_credits.png` (centred credits) and `shot_final_title.png` (centred title with PRESS START).
+`shot_final_credits.png` (centred credits), `shot_final_title.png` (centred title with PRESS START)
+and `shot_config_menu.png` (runtime options menu).
 
 ### Current visual/audio state
 
@@ -55,6 +56,24 @@ Current screen evidence: `iigs/docs/screenshots/shot_final_aligned_game.png` (ga
   `$7E2D`, and FamiTone is 8-bit code.  The table is now padded to `$7E30` and `crt0` sets `sep #$20`
   before the FamiTone init calls.  This eliminated the `Emulated state corrupt` crash.
 
+### Runtime options and hidden inputs (2026-10-27)
+
+- `iigs/src/games/alterego/Config.s` now sets **`NO_CONFIG equ 0`**.  The stock
+  Audio/Input/Drivers/Credits panels are present; `CONFIG_VIDEO_MENU=0`,
+  `CONFIG_GAME_MENU=0`, `CONFIG_INPUT_2P=0` and `JOYSTICK_SUPPORT=0` remain off.
+- The menu is opened with **`?`**.  GSplus automation that worked reliably:
+  `[System.Windows.Forms.SendKeys]::SendWait('?')` after focusing the window.
+  Synthetic `keybd_event` Shift-`/` was not reliable and must not be used as proof.
+- **Cow Level verified** by holding Tab and pressing Return at the title
+  (`shot_cowlevel.png` locally; the level 0 layout is visibly different).
+- **Sound Test** and the **B, Left, A, B, Left, A** level-skip sequence come from the
+  original `src/game.c` title logic (`py=1` / `code_str`); they were **not captured**
+  through GSplus because the host Command/Option injection was unreliable.  The README
+  documents the logical keys and the GSplus swap caveat instead of claiming an
+  emulator capture.
+- Menu Return exits back to the game without changing the rendering layout; the
+  gameplay capture after Return is unchanged.
+
 ### Build (verified in the snapshot)
 
 ```powershell
@@ -65,7 +84,7 @@ node build.js
 The verified output is:
 
 ```
-MAIN         23727 -> 22297 bytes
+MAIN         23732 -> 22319 bytes
 STKDP        6470 -> 65 bytes
 ENGINE       31638 -> 26789 bytes
 PPU1         61787 -> 58426 bytes
@@ -73,7 +92,7 @@ PPU2         61787 -> 58427 bytes
 CHRDATA      65606 -> 62730 bytes
 AEROM        65828 -> 31766 bytes
 PPURAM       16454 -> 7753 bytes
-AlterEgoGS: 333297 -> 268253 bytes
+AlterEgoGS: 333302 -> 268275 bytes
 ```
 
 `package.json` `config.merlin32` is `C:\dev\Merlin32.exe`; `config.cadius` is `C:\dev\cadius.exe`.
@@ -99,9 +118,10 @@ Start-Process C:\dev\emu\GSplus\gsplus.exe `
   -ArgumentList '-cfg', (Resolve-Path C:\dev\alter-ego-vera\iigs\emu\gsplus-alterego-jml.kegs)
 ```
 
-Wait **15 seconds**, focus the GSplus window, then send **Return twice** (credits, start). Earlier
-Returns (8 s) are lost. Screenshot with the GSplus `MainWindowHandle` and `CopyFromScreen`; raise the
-window to topmost before capture if the DSH GUI overlaps it.
+Wait about **24 seconds**, focus the GSplus window, then send **Return once** at the title. Earlier
+Returns (8 s) are lost.  For the options menu, focus the window and send `?` with
+`SendKeys`; see the runtime-options section above. Screenshot with the GSplus `MainWindowHandle`
+and `CopyFromScreen`; raise the window to topmost before capture if the DSH GUI overlaps it.
 
 ## Hard constraints found in this port
 
