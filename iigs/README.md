@@ -10,7 +10,7 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (283,514 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (283,524 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
@@ -72,7 +72,7 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (283,514 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (283,524 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes; the committed `prg.bin` is the
 audio-enabled FamiTone build that produced the committed image.  The audio PRG is linked from the
 cc65 objects in `build/silky` (the same `game.o`/`audio_silky.o` used here); no source rebuild is

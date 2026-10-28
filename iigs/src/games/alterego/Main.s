@@ -106,8 +106,11 @@ CustomRender ENT
             ; The title's PRESS START lives on nametable 0; the game's
             ; scroll alternates between the two nametables, but the custom
             ; renderer has to select the page itself.  Use a render counter
-            ; so PRESS START really blinks.  Credits scroll with y=8 and use
-            ; nametable 0 only.
+            ; so PRESS START really blinks.  Credits scroll with y=8, and the
+            ; well-done screen scrolls x=-4; both stay on nametable 0.
+            ldal  _ppuscroll_x
+            and   #$00FF
+            bne   :title_nt0
             ldal  _ppuscroll_y
             and   #$00FF
             bne   :title_nt0
