@@ -242,21 +242,23 @@ of GSplus gameplay measured RMS 3532 / peak 27610, so the current build is audib
 
 ## Push status
 
-- Branch **`test/gs`** was pushed to `origin` on 2026-10-27:
+- Branch **`test/gs`** was pushed to `origin` on 2026-10-29:
   `https://github.com/anomixer/alter-ego-vera`.
-- Commit `d3da372` (this change) enables the silky-gs runtime options menu and documents the
-  controls and hidden title-screen inputs.  The previous commits were `b81c827` (centred
-  credits/title on the final layout, baseline game source, audio-enabled PRG, boot image) and
-  `f47dc3e` (centred-title docs).  The earlier snapshot commits were `81bd24f` and `4cfafc3`.
+- Commit `81c4193` upgrades the engine to silky-gs v0.0.2, restores the animated sea and repackages
+  `emu/AlterEgoJml.2mg`.  The previous commit was `4d98258` (water animation and palette fixes);
+  earlier commits were `d3da372` (runtime options menu), `b81c827` (centred layout/audio PRG) and
+  `f47dc3e` (centred-title docs).
 - The existing VERA port at the repository root was not modified; `iigs/` is additive.
 
 ## Next steps
 
-1. Layout, bottom-frame flush and player visibility are now verified on the bootable image.
-2. Keep `prg.bin` as the audio-enabled 32,768-byte FamiTone build; do not rebuild it from the
-   historical audio-off baseline.
-3. The final app/image/docs are committed on `test/gs`.  Remaining untracked files are
-   investigation screenshots and are not part of the deliverable.
+1. The v0.0.2 engine, animated water, palette fixes and current app/image are committed on
+   `test/gs`; the boot image has been verified on GSplus.
+2. Keep `prg.bin` as the water-animation, audio-enabled 32,768-byte FamiTone build; do not rebuild
+   it from the historical audio-off baseline.
+3. Still to do when the user reopens them: the music-test/Sound Test entry (deferred) and a final
+   capture of GAME OVER / WELL DONE and levels 2–5 with the new palette layouts.
+4. Remaining untracked files are investigation screenshots; they are not part of the deliverable.
 
 ## Provenance
 
