@@ -10,7 +10,7 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (268,275 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (283,514 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
@@ -29,6 +29,12 @@ current bootable 3.5" image:
 - Gameplay uses the dirty-grid renderer (`ENABLE_DIRTY_RENDERING=1`): only changed background cells
   and sprites are emitted each frame.  The HUD activation check uses the `OAM_COPY` first word, not
   `spriteCount`.
+- At the factory **2.8 MHz** setting gameplay renders at about **30 fps**.  Reaching that required
+  suppressing the game's every-16-frames background CHR pattern-table toggle (`bank_bg`); that toggle
+  forced a full-screen tile redraw and limited the port to roughly 12 fps.  The trade-off is that the
+  background's alternating tile animation is frozen at its first pattern table.
+- The title's `PRESS START` blink is driven by the custom renderer itself (`titleBlink`), choosing
+  nametable 0 / nametable 1 every 16 renders; credits stay on nametable 0.
 - Audio is the original FamiTone2 driver and data, routed through the silky-gs APU model.  FamiTone
   is 8-bit code and its APU trampolines start at `$7E30`; both details are required, otherwise the
   status write corrupts the following APU instructions (the old `Emulated state corrupt` crash).
@@ -66,7 +72,7 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (268,210 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (283,514 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes; the committed `prg.bin` is the
 audio-enabled FamiTone build that produced the committed image.  The audio PRG is linked from the
 cc65 objects in `build/silky` (the same `game.o`/`audio_silky.o` used here); no source rebuild is
@@ -101,7 +107,8 @@ somewhere else.
 
 Gameplay now uses the dirty-grid path above; on the 2.8 MHz setting it keeps the original
 SHR 0–199 / NES 16–215 mapping, so the playfield position does not move while only dirty cells are
-redrawn.
+redrawn.  With the pattern-table toggle suppressed it runs at about 30 fps; the full-screen 16-frame
+redraw it replaces was the 2.8 MHz bottleneck.
 
 ## Controls
 

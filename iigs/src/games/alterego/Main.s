@@ -102,7 +102,25 @@ CustomRender ENT
             tay
             ldal  _ppuscroll_x
             tax
-            ldal  _ppuctrl
+
+            ; The title's PRESS START lives on nametable 0; the game's
+            ; scroll alternates between the two nametables, but the custom
+            ; renderer has to select the page itself.  Use a render counter
+            ; so PRESS START really blinks.  Credits scroll with y=8 and use
+            ; nametable 0 only.
+            ldal  _ppuscroll_y
+            and   #$00FF
+            bne   :title_nt0
+            ldal  titleBlink
+            inc
+            stal  titleBlink
+            and   #$0010
+            beq   :title_nt0
+            lda   #1
+            bra   :title_scroll
+:title_nt0
+            lda   #0
+:title_scroll
             jsl   NES_SetScroll
 
             lda   #0
@@ -123,6 +141,8 @@ CustomRender ENT
             clc
             rtl
             mx    %00
+
+titleBlink    dw    0
 
 ; Palette management generated from palettes/
             put   pal_transitions.s
