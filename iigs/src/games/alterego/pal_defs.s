@@ -5,3 +5,10 @@
 
 ; Palette ids, word-aligned so they index the tables directly.  0 = no palette.
 PAL_TITLE equ 2
+PAL_GAME1 equ 4
+PAL_GAME2 equ 6
+PAL_GAME3 equ 8
+PAL_GAME4 equ 10
+PAL_GAME5 equ 12
+PAL_GAME_OVER equ 14
+PAL_WELL_DONE equ 16

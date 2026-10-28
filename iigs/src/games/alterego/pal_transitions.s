@@ -11,6 +11,13 @@
 
 ; Swizzle tables, in the PALDATA segment (palettes.s)
 PAL_TITLE_SWIZZLE EXT
+PAL_GAME1_SWIZZLE EXT
+PAL_GAME2_SWIZZLE EXT
+PAL_GAME3_SWIZZLE EXT
+PAL_GAME4_SWIZZLE EXT
+PAL_GAME5_SWIZZLE EXT
+PAL_GAME_OVER_SWIZZLE EXT
+PAL_WELL_DONE_SWIZZLE EXT
 
 ; The palette ids (PAL_*) and pinned slots (PAL_SLOT_*) are in pal_defs.s.
 
@@ -23,6 +30,69 @@ PAL_TITLE_SWIZZLE EXT
 ;     SP0 $0F $0C $10 $30 -> [0,9,10,11]
 ;     SP1 $0F $30 $21 $11 -> [0,11,3,2]
 ;     SP2 $0F $16 $32 $30 -> [0,4,12,11]
+;     SP3 $0F $24 $19 $29 -> [0,13,14,15]
+;   game1
+;     BG0 $0F $0C $10 $30 -> [0,1,2,3]
+;     BG1 $0F *$16 *$27 *$38 -> [0,4,5,6]
+;     BG2 $0F $21 $31 $11 -> [0,7,8,9]
+;     BG3 $0F $24 $19 $29 -> [0,10,11,12]
+;     SP0 $0F $0C $10 $30 -> [0,1,2,3]
+;     SP1 $0F $30 $21 $11 -> [0,3,7,9]
+;     SP2 $0F *$16 $32 $30 -> [0,13,14,3]
+;     SP3 $0F $24 $19 $29 -> [0,10,11,12]
+;   game2
+;     BG0 $0F $0C $10 $30 -> [0,1,2,3]
+;     BG1 $0F *$00 *$32 *$30 -> [0,4,5,6]
+;     BG2 $0F $29 $39 $1A -> [0,12,7,8]
+;     BG3 $0F $24 $19 $29 -> [0,10,11,12]
+;     SP0 $0F $0C $10 $30 -> [0,1,2,3]
+;     SP1 $0F $30 $21 $11 -> [0,3,9,13]
+;     SP2 $0F *$16 $32 $30 -> [0,14,15,3]
+;     SP3 $0F $24 $19 $29 -> [0,10,11,12]
+;   game3
+;     BG0 $0F $1C $10 $30 -> [0,11,1,2]
+;     BG1 $0F *$11 *$21 *$31 -> [0,4,5,6]
+;     BG2 $0F $16 $27 $06~$16 -> [0,3,7,3]
+;     BG3 $0F $24 $1C $2C -> [0,10,11,12]
+;     SP0 $0F $0C $10 $30 -> [0,8,1,2]
+;     SP1 $0F $30 $21 $11 -> [0,2,9,13]
+;     SP2 $0F *$16 $32 $30 -> [0,14,15,2]
+;     SP3 $0F $24 $1C $2C -> [0,10,11,12]
+;   game4
+;     BG0 $0F $1C $10 $30 -> [0,1,2,3]
+;     BG1 $0F *$19 *$29 *$39 -> [0,4,5,6]
+;     BG2 $0F $22 $31 $12 -> [0,7,12,8]
+;     BG3 $0F $24 $21 $31 -> [0,10,11,12]
+;     SP0 $0F $0C $10 $30 -> [0,9,2,3]
+;     SP1 $0F $30 $21 $11 -> [0,3,11,13]
+;     SP2 $0F *$16 $32 $30 -> [0,14,15,3]
+;     SP3 $0F $24 $21 $31 -> [0,10,11,12]
+;   game5
+;     BG0 $0F $1C $10 $30 -> [0,1,2,3]
+;     BG1 $0F *$05 *$26 *$37 -> [0,4,5,6]
+;     BG2 $0F $15 $35~$15 $05~$15 -> [0,7,7,7]
+;     BG3 $0F $24 $19 $29 -> [0,10,11,12]
+;     SP0 $0F $0C $10 $30 -> [0,8,2,3]
+;     SP1 $0F $30 $21 $11 -> [0,3,9,13]
+;     SP2 $0F *$16 $32 $30 -> [0,14,15,3]
+;     SP3 $0F $24 $19 $29 -> [0,10,11,12]
+;   game_over
+;     BG0 $0F $0C $10 $30 -> [0,1,2,3]
+;     BG1 $0F $16 $27 $38 -> [0,4,5,6]
+;     BG2 $0F $21 $31 $11 -> [0,7,8,9]
+;     BG3 $0F $24 $19 $29 -> [0,10,11,12]
+;     SP0 $0F $0C $10 $30 -> [0,1,2,3]
+;     SP1 $0F $16 $27 $38 -> [0,4,5,6]
+;     SP2 $0F $21 $31 $11 -> [0,7,8,9]
+;     SP3 $0F $24 $19 $29 -> [0,10,11,12]
+;   well_done
+;     BG0 $0F $17 $28~$38 $38 -> [0,1,2,2]
+;     BG1 $0F $05 $26 $37 -> [0,4,5,6]
+;     BG2 $0F $06~$16 $16 $26 -> [0,3,3,5]
+;     BG3 $0F $11 $21 $31 -> [0,10,11,12]
+;     SP0 $0F $0C $10 $30 -> [0,7,8,9]
+;     SP1 $0F $30 $21 $11 -> [0,9,11,10]
+;     SP2 $0F $16 $32~$30 $30 -> [0,3,9,9]
 ;     SP3 $0F $24 $19 $29 -> [0,13,14,15]
 
             mx    %00
@@ -64,13 +134,11 @@ ApplyPaletteChange
             ldx   palCurrent
             sty   palCurrent
             jsr   UpdatePalette       ; X = from, Y = to
-            bra   :setlayout
+            rtl
 :colors     ldy   palCurrent
             beq   :none               ; no palette yet
             jsr   LoadPaletteColors
-:none
-:setlayout
-            rtl
+:none       rtl
 
 ; UpdatePalette
 ;
@@ -151,7 +219,7 @@ DetectNESPalette
             bcs   :found
             inx
             inx
-            cpx   #4
+            cpx   #18
             bcc   :anext
             ldx   #0
 :found      txy
@@ -208,26 +276,89 @@ DetectNESPalette
 PAL_MATCH
             dw    0
             dw    PAL_TITLE_MATCH
+            dw    PAL_GAME1_MATCH
+            dw    PAL_GAME2_MATCH
+            dw    PAL_GAME3_MATCH
+            dw    PAL_GAME4_MATCH
+            dw    PAL_GAME5_MATCH
+            dw    PAL_GAME_OVER_MATCH
+            dw    PAL_WELL_DONE_MATCH
 PAL_TITLE_MATCH
             db    $01,$11,$21,$16,$27,$38,$06,$16,$26,$11,$21,$31   ; BG0-BG3
+            db    $0C,$10,$30,$30,$21,$11,$16,$32,$30,$24,$19,$29   ; SP0-SP3
+PAL_GAME1_MATCH
+            db    $0C,$10,$30,$FF,$FF,$FF,$21,$31,$11,$24,$19,$29   ; BG0-BG3
+            db    $0C,$10,$30,$30,$21,$11,$FF,$32,$30,$24,$19,$29   ; SP0-SP3
+PAL_GAME2_MATCH
+            db    $0C,$10,$30,$FF,$FF,$FF,$29,$39,$1A,$24,$19,$29   ; BG0-BG3
+            db    $0C,$10,$30,$30,$21,$11,$FF,$32,$30,$24,$19,$29   ; SP0-SP3
+PAL_GAME3_MATCH
+            db    $1C,$10,$30,$FF,$FF,$FF,$16,$27,$06,$24,$1C,$2C   ; BG0-BG3
+            db    $0C,$10,$30,$30,$21,$11,$FF,$32,$30,$24,$1C,$2C   ; SP0-SP3
+PAL_GAME4_MATCH
+            db    $1C,$10,$30,$FF,$FF,$FF,$22,$31,$12,$24,$21,$31   ; BG0-BG3
+            db    $0C,$10,$30,$30,$21,$11,$FF,$32,$30,$24,$21,$31   ; SP0-SP3
+PAL_GAME5_MATCH
+            db    $1C,$10,$30,$FF,$FF,$FF,$15,$35,$05,$24,$19,$29   ; BG0-BG3
+            db    $0C,$10,$30,$30,$21,$11,$FF,$32,$30,$24,$19,$29   ; SP0-SP3
+PAL_GAME_OVER_MATCH
+            db    $0C,$10,$30,$16,$27,$38,$21,$31,$11,$24,$19,$29   ; BG0-BG3
+            db    $0C,$10,$30,$16,$27,$38,$21,$31,$11,$24,$19,$29   ; SP0-SP3
+PAL_WELL_DONE_MATCH
+            db    $17,$28,$38,$05,$26,$37,$06,$16,$26,$11,$21,$31   ; BG0-BG3
             db    $0C,$10,$30,$30,$21,$11,$16,$32,$30,$24,$19,$29   ; SP0-SP3
 
 ; id -> the ids of the palettes that can follow it (transitions), 0-terminated
 PAL_SUCC
             dw    PAL_NONE_SUCC
             dw    PAL_TITLE_SUCC
+            dw    PAL_GAME1_SUCC
+            dw    PAL_GAME2_SUCC
+            dw    PAL_GAME3_SUCC
+            dw    PAL_GAME4_SUCC
+            dw    PAL_GAME5_SUCC
+            dw    PAL_GAME_OVER_SUCC
+            dw    PAL_WELL_DONE_SUCC
 PAL_NONE_SUCC
             dw    0
 PAL_TITLE_SUCC
-            dw    PAL_TITLE,0
+            dw    PAL_TITLE,PAL_GAME1,PAL_GAME2,PAL_GAME3,PAL_GAME4,PAL_GAME5,0
+PAL_GAME1_SUCC
+            dw    PAL_GAME1,PAL_GAME2,PAL_GAME3,PAL_GAME4,PAL_GAME5,PAL_GAME_OVER,PAL_WELL_DONE,0
+PAL_GAME2_SUCC
+            dw    PAL_GAME1,PAL_GAME2,PAL_GAME3,PAL_GAME4,PAL_GAME5,PAL_GAME_OVER,PAL_WELL_DONE,0
+PAL_GAME3_SUCC
+            dw    PAL_GAME1,PAL_GAME2,PAL_GAME3,PAL_GAME4,PAL_GAME5,PAL_GAME_OVER,PAL_WELL_DONE,0
+PAL_GAME4_SUCC
+            dw    PAL_GAME1,PAL_GAME2,PAL_GAME3,PAL_GAME4,PAL_GAME5,PAL_GAME_OVER,PAL_WELL_DONE,0
+PAL_GAME5_SUCC
+            dw    PAL_GAME1,PAL_GAME2,PAL_GAME3,PAL_GAME4,PAL_GAME5,PAL_GAME_OVER,PAL_WELL_DONE,0
+PAL_GAME_OVER_SUCC
+            dw    PAL_GAME_OVER,PAL_TITLE,0
+PAL_WELL_DONE_SUCC
+            dw    PAL_WELL_DONE,PAL_TITLE,0
 
 ; id -> swizzle tables (PALDATA segment, palettes.s)
 PAL_SWIZZLE_LO
             dw    0
             dw    PAL_TITLE_SWIZZLE
+            dw    PAL_GAME1_SWIZZLE
+            dw    PAL_GAME2_SWIZZLE
+            dw    PAL_GAME3_SWIZZLE
+            dw    PAL_GAME4_SWIZZLE
+            dw    PAL_GAME5_SWIZZLE
+            dw    PAL_GAME_OVER_SWIZZLE
+            dw    PAL_WELL_DONE_SWIZZLE
 PAL_SWIZZLE_HI
             dw    0
             dw    ^PAL_TITLE_SWIZZLE
+            dw    ^PAL_GAME1_SWIZZLE
+            dw    ^PAL_GAME2_SWIZZLE
+            dw    ^PAL_GAME3_SWIZZLE
+            dw    ^PAL_GAME4_SWIZZLE
+            dw    ^PAL_GAME5_SWIZZLE
+            dw    ^PAL_GAME_OVER_SWIZZLE
+            dw    ^PAL_WELL_DONE_SWIZZLE
 
 ; id -> slot map: for each NES palette RAM entry, the IIgs slot * 2, or $FF if it isn't loaded
 ; (color 0, which the game writes straight to slot 0, colors that share slot 0 with it, and
@@ -235,17 +366,129 @@ PAL_SWIZZLE_HI
 PAL_CELLS
             dw    0
             dw    PAL_TITLE_CELLS
+            dw    PAL_GAME1_CELLS
+            dw    PAL_GAME2_CELLS
+            dw    PAL_GAME3_CELLS
+            dw    PAL_GAME4_CELLS
+            dw    PAL_GAME5_CELLS
+            dw    PAL_GAME_OVER_CELLS
+            dw    PAL_WELL_DONE_CELLS
 PAL_TITLE_CELLS
             db    $FF,$02,$04,$06,$FF,$08,$0A,$0C,$FF,$0E,$08,$10,$FF,$04,$06,$FF   ; BG0-BG3
             db    $FF,$12,$14,$16,$FF,$16,$06,$04,$FF,$08,$18,$16,$FF,$1A,$1C,$1E   ; SP0-SP3
+PAL_GAME1_CELLS
+            db    $FF,$02,$04,$06,$FF,$08,$0A,$0C,$FF,$0E,$10,$12,$FF,$14,$16,$18   ; BG0-BG3
+            db    $FF,$02,$04,$06,$FF,$06,$0E,$12,$FF,$1A,$1C,$06,$FF,$14,$16,$18   ; SP0-SP3
+PAL_GAME2_CELLS
+            db    $FF,$02,$04,$06,$FF,$08,$0A,$0C,$FF,$18,$0E,$10,$FF,$14,$16,$18   ; BG0-BG3
+            db    $FF,$02,$04,$06,$FF,$06,$12,$1A,$FF,$1C,$1E,$06,$FF,$14,$16,$18   ; SP0-SP3
+PAL_GAME3_CELLS
+            db    $FF,$16,$02,$04,$FF,$08,$0A,$0C,$FF,$06,$0E,$FF,$FF,$14,$16,$18   ; BG0-BG3
+            db    $FF,$10,$02,$04,$FF,$04,$12,$1A,$FF,$1C,$1E,$04,$FF,$14,$16,$18   ; SP0-SP3
+PAL_GAME4_CELLS
+            db    $FF,$02,$04,$06,$FF,$08,$0A,$0C,$FF,$0E,$18,$10,$FF,$14,$16,$18   ; BG0-BG3
+            db    $FF,$12,$04,$06,$FF,$06,$16,$1A,$FF,$1C,$1E,$06,$FF,$14,$16,$18   ; SP0-SP3
+PAL_GAME5_CELLS
+            db    $FF,$02,$04,$06,$FF,$08,$0A,$0C,$FF,$0E,$FF,$FF,$FF,$14,$16,$18   ; BG0-BG3
+            db    $FF,$10,$04,$06,$FF,$06,$12,$1A,$FF,$1C,$1E,$06,$FF,$14,$16,$18   ; SP0-SP3
+PAL_GAME_OVER_CELLS
+            db    $FF,$02,$04,$06,$FF,$08,$0A,$0C,$FF,$0E,$10,$12,$FF,$14,$16,$18   ; BG0-BG3
+            db    $FF,$02,$04,$06,$FF,$08,$0A,$0C,$FF,$0E,$10,$12,$FF,$14,$16,$18   ; SP0-SP3
+PAL_WELL_DONE_CELLS
+            db    $FF,$02,$FF,$04,$FF,$08,$0A,$0C,$FF,$FF,$06,$0A,$FF,$14,$16,$18   ; BG0-BG3
+            db    $FF,$0E,$10,$12,$FF,$12,$16,$14,$FF,$06,$FF,$12,$FF,$1A,$1C,$1E   ; SP0-SP3
 
 ; from id -> its row of to id -> background groups to redraw (bit 0 = BG0 .. bit 3 = BG3).
 ; From no palette (0), everything is redrawn.
 BG_UPDATE_MASKS
             dw    BG_UPDATE_MASKS_NONE
             dw    BG_UPDATE_MASKS_TITLE
+            dw    BG_UPDATE_MASKS_GAME1
+            dw    BG_UPDATE_MASKS_GAME2
+            dw    BG_UPDATE_MASKS_GAME3
+            dw    BG_UPDATE_MASKS_GAME4
+            dw    BG_UPDATE_MASKS_GAME5
+            dw    BG_UPDATE_MASKS_GAME_OVER
+            dw    BG_UPDATE_MASKS_WELL_DONE
 BG_UPDATE_MASKS_NONE
-            dw    $0000,%1111
+            dw    $0000,%1111,%1111,%1111,%1111,%1111,%1111,%1111,%1111
 BG_UPDATE_MASKS_TITLE
             dw    $0000
             dw    %0000   ; to title
+            dw    %1100   ; to game1
+            dw    %1100   ; to game2
+            dw    %1101   ; to game3
+            dw    %1100   ; to game4
+            dw    %1100   ; to game5
+            dw    %1100   ; to game_over
+            dw    %1101   ; to well_done
+BG_UPDATE_MASKS_GAME1
+            dw    $0000
+            dw    %1100   ; to title
+            dw    %0000   ; to game1
+            dw    %0100   ; to game2
+            dw    %0101   ; to game3
+            dw    %0100   ; to game4
+            dw    %0100   ; to game5
+            dw    %0000   ; to game_over
+            dw    %0101   ; to well_done
+BG_UPDATE_MASKS_GAME2
+            dw    $0000
+            dw    %1100   ; to title
+            dw    %0100   ; to game1
+            dw    %0000   ; to game2
+            dw    %0101   ; to game3
+            dw    %0100   ; to game4
+            dw    %0100   ; to game5
+            dw    %0100   ; to game_over
+            dw    %0101   ; to well_done
+BG_UPDATE_MASKS_GAME3
+            dw    $0000
+            dw    %1101   ; to title
+            dw    %0101   ; to game1
+            dw    %0101   ; to game2
+            dw    %0000   ; to game3
+            dw    %0101   ; to game4
+            dw    %0101   ; to game5
+            dw    %0101   ; to game_over
+            dw    %0101   ; to well_done
+BG_UPDATE_MASKS_GAME4
+            dw    $0000
+            dw    %1100   ; to title
+            dw    %0100   ; to game1
+            dw    %0100   ; to game2
+            dw    %0101   ; to game3
+            dw    %0000   ; to game4
+            dw    %0100   ; to game5
+            dw    %0100   ; to game_over
+            dw    %0101   ; to well_done
+BG_UPDATE_MASKS_GAME5
+            dw    $0000
+            dw    %1100   ; to title
+            dw    %0100   ; to game1
+            dw    %0100   ; to game2
+            dw    %0101   ; to game3
+            dw    %0100   ; to game4
+            dw    %0000   ; to game5
+            dw    %0100   ; to game_over
+            dw    %0101   ; to well_done
+BG_UPDATE_MASKS_GAME_OVER
+            dw    $0000
+            dw    %1100   ; to title
+            dw    %0000   ; to game1
+            dw    %0100   ; to game2
+            dw    %0101   ; to game3
+            dw    %0100   ; to game4
+            dw    %0100   ; to game5
+            dw    %0000   ; to game_over
+            dw    %0101   ; to well_done
+BG_UPDATE_MASKS_WELL_DONE
+            dw    $0000
+            dw    %1101   ; to title
+            dw    %0101   ; to game1
+            dw    %0101   ; to game2
+            dw    %0101   ; to game3
+            dw    %0101   ; to game4
+            dw    %0101   ; to game5
+            dw    %0101   ; to game_over
+            dw    %0000   ; to well_done
