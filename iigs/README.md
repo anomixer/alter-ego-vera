@@ -10,7 +10,7 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (283,524 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (284,816 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
@@ -24,8 +24,8 @@ current bootable 3.5" image:
   outer frame and playfield share the same source band; the frame lands flush on the last SHR line
   (no blank rows below it).  Gameplay sprites use compact OAM coordinates (`GRID_COMPACT_SPRITES=1`).
 - The credits and title screens are full-screen NES content; they render with a `YOffsetAbs` of 31,
-  which lifts them so the credits block and the ALTER EGO / PRESS START logo are vertically centred
-  in the 200-line SHR viewport.
+  which lifts them so the credits block and the ALTER EGO logo are vertically centred in the
+  200-line SHR viewport.
 - Gameplay uses the dirty-grid renderer (`ENABLE_DIRTY_RENDERING=1`): only changed background cells
   and sprites are emitted each frame.  The HUD activation check uses the `OAM_COPY` first word, not
   `spriteCount`.
@@ -33,8 +33,11 @@ current bootable 3.5" image:
   suppressing the game's every-16-frames background CHR pattern-table toggle (`bank_bg`); that toggle
   forced a full-screen tile redraw and limited the port to roughly 12 fps.  The trade-off is that the
   background's alternating tile animation is frozen at its first pattern table.
-- The title's `PRESS START` blink is driven by the custom renderer itself (`titleBlink`), choosing
-  nametable 0 / nametable 1 every 16 renders; credits stay on nametable 0.
+- The title uses the VERA port's four-button menu: **START GAME**, **START LEVEL** (1–25),
+  **MUSIC ON/OFF**, **SOUND ON/OFF**.  The old blinking `PRESS START` prompt is hidden on both
+  nametables so the menu is the only title prompt.  The menu is drawn into both nametables and the
+  custom renderer still alternates them, so it stays visible while the logo animates.
+- Credits stay on nametable 0.
 - Audio is the original FamiTone2 driver and data, routed through the silky-gs APU model.  FamiTone
   is 8-bit code and its APU trampolines start at `$7E30`; both details are required, otherwise the
   status write corrupts the following APU instructions (the old `Emulated state corrupt` crash).
@@ -72,11 +75,12 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (283,524 bytes). The input
-`src/games/alterego/prg.bin` must stay exactly 32,768 bytes; the committed `prg.bin` is the
-audio-enabled FamiTone build that produced the committed image.  The audio PRG is linked from the
-cc65 objects in `build/silky` (the same `game.o`/`audio_silky.o` used here); no source rebuild is
-needed for a normal app rebuild if `prg.bin` is already present.
+The build prints the segment sizes and writes `AlterEgoGS` (284,816 bytes). The input
+`src/games/alterego/prg.bin` must stay exactly 32,768 bytes.  The committed `prg.bin` is built from
+`C:\dev\alter-ego\build\silky\variants\game_apop1.c` with the VERA-style title menu and pause
+**EXIT GAME** added, the one-byte `bank_bg` animation patch folded into the source (`bank_bg(0)`),
+and the FamiTone audio driver/objects linked as before.  The old `build/silky` object files are not
+used for this revision; re-derive any binary patch from a fresh link if you rebuild the PRG.
 
 ## Repackage the boot image
 
@@ -101,9 +105,9 @@ Start-Process C:\dev\emu\GSplus\gsplus.exe `
 ```
 
 Wait about **20 seconds** for the boot at 16 MHz, or **2–3 minutes** at the factory 2.8 MHz
-(`g_limit_speed = 2`), then press **Return** at the title. Earlier inputs are lost; GSplus needs
-the window focus. The `.kegs` path is absolute, so edit `s7d1` if the repository is checked out
-somewhere else.
+(`g_limit_speed = 2`), then use **X** / **Z** (or Up/Down) to choose a title-menu line and
+**Return** or **P** to start. Earlier inputs are lost; GSplus needs the window focus. The `.kegs`
+path is absolute, so edit `s7d1` if the repository is checked out somewhere else.
 
 Gameplay now uses the dirty-grid path above; on the 2.8 MHz setting it keeps the original
 SHR 0–199 / NES 16–215 mapping, so the playfield position does not move while only dirty cells are
@@ -112,27 +116,36 @@ redraw it replaces was the 2.8 MHz bottleneck.
 
 ## Controls
 
-The game keeps the original NES control scheme. This is not the VERA port's menu layout:
+The game keeps the original NES control scheme.  The keyboard mapping implemented by
+`_pad_poll` in `src/games/alterego/neslib_silky.s` is:
 
 | Input | NES function |
 |---|---|
 | Arrow keys | D-pad |
-| **Command / Open Apple** | **A** |
-| **Option** | **B** |
-| **Return** | **Start** |
+| **Z** or **Space** | **A** |
+| **X** | **B** |
+| **Return** or **P** | **Start** |
 | **Tab** | **Select** |
 
-At the title, **Return** starts level 1. In game, **Return** opens the pause menu
-(**Up**/**Down** to choose **RESUME** or **RESTART**, then **Return**).
+The title menu also accepts **X** as “next line” and **Z** as “previous line”, so it can be driven
+without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause menu accepts **X** /
+**Z** the same way.
 
-GSplus on Windows swaps Command and Option by default. In that stock configuration the
-physical keys are:
+### Title menu
 
-- **Alt** or **F1** → Command / A
-- **Windows key** → Option / B
+- **START GAME** — start at level 1.
+- **START LEVEL** — choose level 1–25 with **Left/Right**; the number is shown at the end of the row.
+- **MUSIC ON/OFF** and **SOUND ON/OFF** — press **Return/P** to toggle, or **Left/Right** to toggle.
+- Press **Return/P** on **START GAME** or **START LEVEL** to begin.
 
-You can turn off *Swap Command/Option keys* in the GSplus F4 config, or remap A/B in the
-`?` → **INPUT** panel. The game itself always treats Command as A and Option as B.
+### Pause menu
+
+In game, **Return/P** opens the pause menu.  Choose **RESUME**, **RESTART**, or **EXIT GAME** with
+Up/Down (or X/Z), then press **Return/P**.  **EXIT GAME** returns to the title menu; **RESTART**
+restarts the current level.
+
+> The earlier Command/Option, Alt/F1 and Windows-key instructions were wrong for this build.  The
+> actual A/B keys are **Z/Space** and **X**; Command/Option and Alt/F1 are not read by the game.
 
 ## silky-gs options
 
@@ -149,26 +162,12 @@ Arrow keys move between items, **Space** toggles or activates the selected item,
 `CONFIG_GAME_MENU`, `CONFIG_INPUT_2P` and `JOYSTICK_SUPPORT` are still off, so the
 corresponding video, game, player-2 and joystick panels are not present.
 
-## Hidden buttons
+## Legacy title secrets
 
-These are the original NES title-screen secrets; they still work in the IIgs port.  Use
-the logical NES names below (**A** = Command, **B** = Option, **Start** = Return,
-**Select** = Tab):
-
-- **Sound Test** — at the title screen, hold **Command + Option** (A+B), then press
-  **Return**.  Release after the screen starts to fade.  In the sound test, Left/Right
-  chooses the SFX or music bank, Up/Down selects the item, **A** stops music, **B**
-  plays, and **Return** exits.
-- **Cow Level** — at the title screen, hold **Tab** (Select), then press **Return**.
-  The game starts on level 0, the hidden cow level, instead of level 1.
-- **Unlock level skip** — at the title screen, press, one key at a time:
-  **B, Left, A, B, Left, A** (Option, Left, Command, Option, Left, Command).  A menu
-  sound confirms the unlock.  During play, press **Tab** to skip the current level.
-
-> **GSplus note:** with the stock Windows build (*Swap Command/Option keys* = Swapped),
-> use **Alt** or **F1** for Command/A and the **Windows key** for Option/B.  If those
-> keys are awkward, disable the swap in the F4 config or remap A/B in `?` → **INPUT**
-> first; the hidden inputs then use the new A/B keys.
+The NES title secrets are still present in the game code, but the IIgs keyboard shim reads only one
+key per poll.  As a result the simultaneous **A+B** Sound Test and the **Tab+Return** Cow Level
+chord cannot be entered reliably from the keyboard.  The sequential level-unlock code is also
+unverified in this build; do not treat it as a supported control.  Use the title menu above instead.
 
 ## Notes on the port
 
