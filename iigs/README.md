@@ -10,7 +10,7 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (284,816 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (284,944 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
@@ -75,7 +75,7 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (284,816 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (284,944 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes.  The committed `prg.bin` is built from
 `C:\dev\alter-ego\build\silky\variants\game_apop1.c` with the VERA-style title menu and pause
 **EXIT GAME** added, the one-byte `bank_bg` animation patch folded into the source (`bank_bg(0)`),
@@ -141,8 +141,8 @@ without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause 
 ### Pause menu
 
 In game, **Return/P** opens the pause menu.  Choose **RESUME**, **RESTART**, or **EXIT GAME** with
-Up/Down (or X/Z), then press **Return/P**.  **EXIT GAME** returns to the title menu; **RESTART**
-restarts the current level.
+Up/Down (or X/Z), then press **Return/P**.  **EXIT GAME** sits directly under **RESTART** and returns
+to the title menu; **RESTART** restarts the current level.
 
 > The earlier Command/Option, Alt/F1 and Windows-key instructions were wrong for this build.  The
 > actual A/B keys are **Z/Space** and **X**; Command/Option and Alt/F1 are not read by the game.
