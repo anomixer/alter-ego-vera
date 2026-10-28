@@ -37,8 +37,8 @@ current bootable 3.5" image:
   background's alternating tile animation is frozen at its first pattern table.
 - The title uses the VERA port's four-button menu: **START GAME**, **START LEVEL** (1–25),
   **MUSIC ON/OFF**, **SOUND ON/OFF**.  The old blinking `PRESS START` prompt is hidden on both
-  nametables so the menu is the only title prompt.  The menu is drawn into both nametables and the
-  custom renderer still alternates them, so it stays visible while the logo animates.
+  nametables so the menu is the only title prompt.  The menu is drawn into both nametables, and the
+  title's scroll y=8 keeps the renderer on nametable 0 while lifting the logo one tile.
 - Credits stay on nametable 0.
 - Audio is the original FamiTone2 driver and data, routed through the silky-gs APU model.  FamiTone
   is 8-bit code and its APU trampolines start at `$7E30`; both details are required, otherwise the
