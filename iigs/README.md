@@ -10,7 +10,7 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (284,944 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (285,032 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
@@ -23,9 +23,11 @@ current bootable 3.5" image:
 - Single gameplay band: SHR lines 0–199 map to NES rows 16–215 (`y_offset=16`).  The HUD stats,
   outer frame and playfield share the same source band; the frame lands flush on the last SHR line
   (no blank rows below it).  Gameplay sprites use compact OAM coordinates (`GRID_COMPACT_SPRITES=1`).
-- The credits and title screens are full-screen NES content; they render with a `YOffsetAbs` of 31,
-  which lifts them so the credits block and the ALTER EGO logo are vertically centred in the
-  200-line SHR viewport.
+- The credits and title screens are full-screen NES content; they render with a `YOffsetAbs` of 31.
+  The title is rendered with `scroll(...,8)`, lifting the ALTER EGO logo one tile; its four menu
+  rows are written one tile lower in the nametable so the menu and cursor stay on their original
+  screen rows, and the title art keeps its original palette attributes.  The credits block remains
+  vertically centred in the 200-line SHR viewport.
 - Gameplay uses the dirty-grid renderer (`ENABLE_DIRTY_RENDERING=1`): only changed background cells
   and sprites are emitted each frame.  The HUD activation check uses the `OAM_COPY` first word, not
   `spriteCount`.
@@ -41,6 +43,7 @@ current bootable 3.5" image:
 - Audio is the original FamiTone2 driver and data, routed through the silky-gs APU model.  FamiTone
   is 8-bit code and its APU trampolines start at `$7E30`; both details are required, otherwise the
   status write corrupts the following APU instructions (the old `Emulated state corrupt` crash).
+  **MUSIC OFF** on the title menu also suppresses gameplay and ending music, not just the title theme.
 - A host loopback capture of GSplus gameplay measured RMS 3532 / peak 27610, confirming that the
   emulator is producing the game's music/SFX, not just running silently.
 
@@ -75,12 +78,14 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (284,944 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (285,032 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes.  The committed `prg.bin` is built from
 `C:\dev\alter-ego\build\silky\variants\game_apop1.c` with the VERA-style title menu and pause
 **EXIT GAME** added, the one-byte `bank_bg` animation patch folded into the source (`bank_bg(0)`),
-and the FamiTone audio driver/objects linked as before.  The old `build/silky` object files are not
-used for this revision; re-derive any binary patch from a fresh link if you rebuild the PRG.
+and the FamiTone audio driver/objects linked as before.  The title keeps the original `src/title.h`
+palette data and lifts the logo with a scroll of y=8; the last-life pause menu hides RESTART and
+moves EXIT into its row.  The old `build/silky` object files are not used for this revision;
+re-derive any binary patch from a fresh link if you rebuild the PRG.
 
 ## Repackage the boot image
 
@@ -142,7 +147,9 @@ without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause 
 
 In game, **Return/P** opens the pause menu.  Choose **RESUME**, **RESTART**, or **EXIT GAME** with
 Up/Down (or X/Z), then press **Return/P**.  **EXIT GAME** sits directly under **RESTART** and returns
-to the title menu; **RESTART** restarts the current level.
+to the title menu; **RESTART** restarts the current level.  When the HUD shows **0** lives left
+(the last life), **RESTART** is hidden and **EXIT GAME** moves into its row; Up/Down still work and
+only the remaining choices are selectable.
 
 > The earlier Command/Option, Alt/F1 and Windows-key instructions were wrong for this build.  The
 > actual A/B keys are **Z/Space** and **X**; Command/Option and Alt/F1 are not read by the game.
