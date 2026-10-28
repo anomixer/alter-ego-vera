@@ -2,6 +2,29 @@
 
 Newest first.  Each entry lists the user-visible changes since the one before it.
 
+## 2026-10-29 — Alter Ego IIgs port
+
+### Engine
+
+- **Upgraded to silky-gs v0.0.2** (`0c341d2`): new keyboard layer (BASIC only in this build), A/B
+  from the Command/Option push buttons in the configuration screen, and engine interrupt handling
+  suspended while the control panel is open.  The port keeps its v0.0.1-era `yieldFrame`,
+  `YOffsetDyn` / `LayoutActiveDyn` direct-page fields, startup diagnostics, and `OAM_COPY` probe.
+
+### Graphics
+
+- Restored the animated sea without the 12 fps full-screen CHR toggle: page-0 tiles `$E1–$E4` hold
+  the alternate wave art, and only the water nametable cells are rewritten every 16 frames.
+- Palette fixes for gameplay: blue-clothed player, green wall plants, blue/cyan water (the sea no
+  longer shows the red line).
+- Title logo keeps its original ALTER EGO palette and one-tile lift; GAME OVER and WELL DONE use the
+  correct full-screen positions.
+
+### Build
+
+- `AlterEgoGS` is 312,836 bytes; `prg.bin` remains exactly 32,768 bytes.  The boot image
+  `emu/AlterEgoJml.2mg` was repackaged with the new application.
+
 ## 2026-10-21
 
 ### Input

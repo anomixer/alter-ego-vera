@@ -10,13 +10,13 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (285,032 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (312,836 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
 - **Runtime options:** ![silky-gs options menu](docs/screenshots/shot_config_menu.png)
 
-## Current status (2026-10-27, branch `test/gs`)
+## Current status (2026-10-29, branch `test/gs`)
 
 - Boots on GSplus; title → level 0 is playable, with music and SFX enabled.
 - Playfield is the NES 32×20 tile map at **256×200** displayed inside the 320×200 SHR screen.
@@ -31,10 +31,19 @@ current bootable 3.5" image:
 - Gameplay uses the dirty-grid renderer (`ENABLE_DIRTY_RENDERING=1`): only changed background cells
   and sprites are emitted each frame.  The HUD activation check uses the `OAM_COPY` first word, not
   `spriteCount`.
-- At the factory **2.8 MHz** setting gameplay renders at about **30 fps**.  Reaching that required
-  suppressing the game's every-16-frames background CHR pattern-table toggle (`bank_bg`); that toggle
-  forced a full-screen tile redraw and limited the port to roughly 12 fps.  The trade-off is that the
-  background's alternating tile animation is frozen at its first pattern table.
+- At the factory **2.8 MHz** setting gameplay renders at about **30 fps**.  The game's every-16-frames
+  background CHR pattern-table toggle (`bank_bg`) is avoided, because the toggle forced a full-screen
+  tile redraw and limited the port to roughly 12 fps.  Instead, the port keeps pattern page 0 and
+  copies the page-1 water variants into spare page-0 tiles `$E1–$E4`; every 16 frames it rewrites
+  only the water nametable cells with `vram_adr`/`vram_put`.  The sea therefore animates at the
+  original cadence while the rest of the playfield stays static and the dirty grid still runs at
+  full speed.
+- The core engine is the upstream **silky-gs v0.0.2** tag (`0c341d2`), merged onto the port's
+  v0.0.1-based work.  v0.0.2 changes the keyboard layer (BASIC driver only; the J13/ADB drivers are
+  compiled out here), reads A/B from the Command/Option push buttons in the configuration screen,
+  and suspends/resumes the engine's interrupt handling while the control panel is open.  The port
+  keeps its own `yieldFrame`, `YOffsetDyn`/`LayoutActiveDyn` direct-page fields, startup border
+  diagnostics, and the `OAM_COPY` HUD probe.
 - The title uses the VERA port's four-button menu: **START GAME**, **START LEVEL** (1–25),
   **MUSIC ON/OFF**, **SOUND ON/OFF**.  The old blinking `PRESS START` prompt is hidden on both
   nametables so the menu is the only title prompt.  The menu is drawn into both nametables, and the
@@ -78,13 +87,14 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (285,032 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (312,836 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes.  The committed `prg.bin` is built from
 `C:\dev\alter-ego\build\silky\variants\game_apop1.c` with the VERA-style title menu and pause
-**EXIT GAME** added, the one-byte `bank_bg` animation patch folded into the source (`bank_bg(0)`),
-and the FamiTone audio driver/objects linked as before.  The title keeps the original `src/title.h`
-palette data and lifts the logo with a scroll of y=8; the last-life pause menu hides RESTART and
-moves EXIT into its row.  The old `build/silky` object files are not used for this revision;
+**EXIT GAME** added, the water-only nametable animation folded into the source (`bank_bg(0)` plus
+the `$E1–$E4` page-0 wave tiles), and the FamiTone audio driver/objects linked as before.  The title
+keeps the original `src/title.h` palette data and lifts the logo with a scroll of y=8; the last-life
+pause menu hides RESTART and moves EXIT into its row.  The old `build/silky` object files are not used
+for this revision;
 re-derive any binary patch from a fresh link if you rebuild the PRG.
 
 ## Repackage the boot image
@@ -116,8 +126,8 @@ path is absolute, so edit `s7d1` if the repository is checked out somewhere else
 
 Gameplay now uses the dirty-grid path above; on the 2.8 MHz setting it keeps the original
 SHR 0–199 / NES 16–215 mapping, so the playfield position does not move while only dirty cells are
-redrawn.  With the pattern-table toggle suppressed it runs at about 30 fps; the full-screen 16-frame
-redraw it replaces was the 2.8 MHz bottleneck.
+redrawn.  The full-screen 16-frame pattern toggle is replaced by the water-cell rewrite described
+above, so the sea animates without dropping below about 30 fps.
 
 ## Controls
 
@@ -157,11 +167,17 @@ only the remaining choices are selectable.
 ## silky-gs options
 
 This build turns on the silky-gs runtime options menu (`NO_CONFIG=0` in `Config.s`).
-While the game is running, press **?** (Shift-/) to open it. The top-level panels are:
+While the game is running, press **?** (Shift-/) to open it.  In silky-gs v0.0.2 the engine
+suspends its interrupt handling while the panel is open and resumes it on return, which fixes the
+hard-to-press control-panel key path.  The top-level panels are:
 
 - **AUDIO** — 60/120/240 Hz mixing rate; this build defaults to 60 Hz.
-- **INPUT** — keyboard type, the four direction keys, and the A/B buttons.
-- **DRIVERS** — keyboard driver selection.
+- **INPUT** — the four direction keys and the A/B buttons.  A/B read the Command/Option push
+  buttons (`$C061`/`$C062`) by default; the game itself still reads its own keyboard shim, so the
+  documented Z/Space and X controls below remain the in-game A/B.
+- **DRIVERS** — this build ships only the BASIC keyboard driver; the J13 and ADB drivers are
+  compiled out, matching silky-gs v0.0.2's default.  The LATCH DIRS option is visible while BASIC
+  is selected.
 - **CREDITS** — project credits.
 
 Arrow keys move between items, **Space** toggles or activates the selected item, and

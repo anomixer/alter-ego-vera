@@ -3,6 +3,51 @@
 This file is the working log and hand-off for the **Apple IIgs (silky-gs)** port. It supersedes the
 archived `//e` notes in the repository root. Dates are Asia/Taipei.
 
+## 2026-10-29 — silky-gs v0.0.2 and animated sea
+
+### What was done
+
+- Fetched silky-gs tag **`v0.0.2` (`0c341d2`)** and merged its engine changes into `iigs/src`:
+  `apu/apu.s`, `core/CoreImpl.s`, `core/Defs.s`, `core/Graphics.s`, `core/blitter/JoyProbes.s`,
+  `misc/io.s`, `rom/rom_config.s`, `rom/rom_config_setup.s`, `rom/rom_exec.s`, `rom/rom_input.s`,
+  `rom/rom_kbd_basic.s`, the new `rom/rom_kbd_macs.s`, and `runtime/head.txt` / `runtime/code.txt`.
+- Preserved the port's own changes: `rom_exec.s` keeps `yieldFrame` and the `switchTask` `jmpl`
+  bank fix; `core/Defs.s` keeps `YOffsetDyn=100` / `LayoutActiveDyn=102`; `scaffold.s` keeps its
+  startup border diagnostics and `Fail` loop, plus the v0.0.2 `KBD_*` guards, `engineVideoOn` clear
+  and APU render counter.
+- `Main.s` now expands `rom_kbd_macs.s`; J13/ADB are disabled in `runtime/code.txt`, matching
+  v0.0.2's BASIC-only default.  The config screen now opens with Shift-/ in the automated GSplus
+  test and the engine suspends interrupts while it is open.
+- Restored the sea animation without the 12 fps full-screen CHR toggle:
+  - `chr.bin` page-0 tiles `$E1–$E4` contain the page-1 water art; `game_add_background` preserves
+    the low two bits of `TILE_WATER`, and the every-16-frames pass rewrites only the water
+    nametable cells with `vram_adr`/`vram_put`.
+  - The map scan uses a pointer (`mp = map; spr = *mp++`) because the generated 6502 indexing did
+    not carry across a 256-byte page boundary.
+- Palette layouts for game 1–5, GAME OVER and WELL DONE were regenerated; gameplay now has a
+  blue-clothed player, green wall plants and blue/cyan water (no red sea line).
+
+### Verified
+
+- New build boots from `emu/AlterEgoJml.2mg`; title has the correct ALTER EGO logo colours, and
+  Return starts level 0.
+- Shift-/ opens the control panel; the v0.0.2 interrupt suspend/resume path is active.
+- Water animation frames differ at the 16-frame cadence and repeat with the expected period.
+
+### Current artifacts
+
+| Item | Value |
+|---|---|
+| Image | `iigs/emu/AlterEgoJml.2mg` |
+| Image size | 10,485,824 bytes |
+| Image SHA-256 | `06F7EA15F2A888BFA3E5016C5B55CA371DEAC0D05EB8BFD70172DAB167EB36F2` |
+| App | `iigs/src/games/alterego/AlterEgoGS`, 312,836 bytes |
+| App SHA-256 | `5E9DC9AB98B044D3812F88ABC76C1E10E2B2581CC43D968F799FBC291E66D884` |
+| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (water-animation FamiTone build) |
+| PRG SHA-256 | `E53FEC0FD2D6EB46E8614FD7457BDA2EB98C9D611EEDFBBCCFD690D3763F1D9F` |
+| CHR SHA-256 | `B6BFDB99318828BEEB357CC302673955691BE0BD3837D48CC18E46690ED32CC1` |
+| GSplus config | `iigs/emu/gsplus-alterego-jml.kegs` |
+
 ## 2026-10-27 — snapshot and branch `test/gs`
 
 ### What was done
@@ -22,7 +67,7 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 - Updated `iigs/package.json` `config.cadius` to the Cadius in this environment
   (`C:\dev\cadius.exe`).
 
-### Current committed image
+### Previous committed image (2026-10-27, superseded by the table above)
 
 | Item | Value |
 |---|---|
@@ -67,9 +112,10 @@ and `shot_config_menu.png` (runtime options menu).
 - `iigs/src/games/alterego/Config.s` now sets **`NO_CONFIG equ 0`**.  The stock
   Audio/Input/Drivers/Credits panels are present; `CONFIG_VIDEO_MENU=0`,
   `CONFIG_GAME_MENU=0`, `CONFIG_INPUT_2P=0` and `JOYSTICK_SUPPORT=0` remain off.
-- The menu is opened with **`?`**.  GSplus automation that worked reliably:
-  `[System.Windows.Forms.SendKeys]::SendWait('?')` after focusing the window.
-  Synthetic `keybd_event` Shift-`/` was not reliable and must not be used as proof.
+- The menu is opened with **`?`**.  Before v0.0.2, `[System.Windows.Forms.SendKeys]::SendWait('?')`
+  was the reliable automation path and synthetic Shift-`/` was not.  With the v0.0.2 input layer,
+  explicit Shift down + `keybd_event` for `/` (VK 191 / scan 0x35) opens it consistently; use that
+  for the current build.
 - **Cow Level verified** by holding Tab and pressing Return at the title
   (`shot_cowlevel.png` locally; the level 0 layout is visibly different).
 - **Sound Test** and the **B, Left, A, B, Left, A** level-skip sequence come from the
