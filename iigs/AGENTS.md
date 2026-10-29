@@ -33,6 +33,10 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 - **START LEVEL now accepts 0**, the hidden Cow Level.  The original NES trigger was Select+Start,
   but this port uses Select (Tab) for the sound test, so 0 is selected with Left/Right on the
   START LEVEL row.  The initial/default value remains 1, and START GAME still forces level 1.
+- **X/Z input hardened**: the port previously had separate upper/lowercase comparisons but the
+  user still had to tap Caps Lock before each X/Z.  `_pad_poll` now accepts `X`/`x`, `Z`/`z`,
+  Ctrl-X/Ctrl-Z (`$18`/`$1A`) and the raw ADB Z/X codes (`$06`/`$07`); Caps Lock is never required.
+  `ca65 --cpu 65816` is required when reassembling `neslib_silky.s` because it contains `phk`/`plb`.
 
 ### Verified
 
@@ -44,6 +48,11 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
   player/ego icons, and the sea still animates (`shot_hudfix_a/b/c.png` differ in the water rows).
 - Cow Level verified from a level-0 build: `shot_cow0_2cow.png` shows the distinct **COW LEVEL**
   banner and map, while normal builds still begin at level 1 (`shot_finalcheck_a.png`).
+- X/Z case/repeat check on the new build: repeated X without Caps Lock moved the cursor
+  `START LEVEL 01` → `MUSIC ON` → `SOUND ON`; Caps Lock followed by two X presses also worked
+  (`shot_caps_1x.png`, `shot_caps_3x.png`, `shot_caps_6capsxx.png`).  The sound-test pass produced
+  `SFX 00 BGM 00`, `SFX 01 BGM 00`, `SFX 01 BGM 01`, and Return entered Level 1
+  (`shot_keyfix_1sound.png` … `shot_keyfix_6game.png`).
 
 ### Current artifacts
 
@@ -51,11 +60,11 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 |---|---|
 | Image | `iigs/emu/AlterEgoJml.2mg` |
 | Image size | 10,485,824 bytes |
-| Image SHA-256 | `3C3013D47625154FC5DDC3E60AB3C19CDE9ABF5B3198DD8E6A65470B8C1AADE6` |
-| App | `iigs/src/games/alterego/AlterEgoGS`, 312,871 bytes |
-| App SHA-256 | `5EE620106460686005D417D892C7028388D7A308354639823406E4FD4398F463` |
-| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (E0 water, Cow menu, FamiTone build) |
-| PRG SHA-256 | `1A77DE4974BA9F628AF0ADAB163177E9BC56A2B85F12EE684E8441849B111684` |
+| Image SHA-256 | `359D8C446C97FA827DE056092C47A2A17D3304DFC9841367340C01487F829A16` |
+| App | `iigs/src/games/alterego/AlterEgoGS`, 312,895 bytes |
+| App SHA-256 | `539383CD0D7ED2E7445DC185C65E1D623CBEA32105ACF06063DCD2B98E738DB7` |
+| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (E0 water, Cow menu, FamiTone build, X/Z aliases) |
+| PRG SHA-256 | `007DD13EB35795A74C35617763D202B4430DA4D39AD7580BFE3542C2D2D656BB` |
 | CHR SHA-256 | `7656616C52D4ACC34C745CAFB99B664CD49D4E4F4DBBCE7ED58ECA03EABCB1C0` |
 | GSplus config | `iigs/emu/gsplus-alterego-jml.kegs` |
 
@@ -167,12 +176,14 @@ AlterEgoGS: 333302 -> 268275 bytes
 ```powershell
 cd C:\dev\alter-ego-vera\iigs
 New-Item -ItemType Directory tmp\repackage -Force | Out-Null
-Copy-Item src\games\alterego\AlterEgoGS tmp\repackage\AlterEgoGS.S16 -Force
-& C:\dev\cadius.exe REPLACEFILE .\emu\AlterEgoJml.2mg /ALTEREGO tmp\repackage\AlterEgoGS.S16
+Copy-Item src\games\alterego\AlterEgoGS 'tmp\repackage\AlterEgoGS.S16#B3DB03' -Force
+& C:\dev\cadius.exe REPLACEFILE .\emu\AlterEgoJml.2mg /ALTEREGO 'tmp\repackage\AlterEgoGS.S16#B3DB03'
 ```
 
-Cadius requires the local staged name to be `AlterEgoGS.S16`, and `REPLACEFILE` (not `ADDFILE`) to
-replace the existing `/ALTEREGO/AlterEgoGS.S16`.
+Cadius takes the ProDOS type from the `#B3DB03` suffix; staging the file as plain `AlterEgoGS.S16`
+replaces the file as `UNK $0000` and the image will not launch correctly.  Use `REPLACEFILE` (not
+`ADDFILE`) to replace the existing `/ALTEREGO/AlterEgoGS.S16`, and confirm with `CATALOG` that the
+entry reads `S16 $DB03`.
 
 ### Run / screenshot
 

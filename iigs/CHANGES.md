@@ -4,6 +4,15 @@ Newest first.  Each entry lists the user-visible changes since the one before it
 
 ## 2026-10-29 — Alter Ego IIgs port
 
+### Input
+
+- **X/Z no longer depend on Caps Lock.**  `_pad_poll` accepts both letter cases (`X`/`x`, `Z`/`z`)
+  and also the Ctrl-X/Ctrl-Z and raw ADB Z/X codes, so repeated quick presses trigger every time
+  without pressing Caps Lock first.  This fixes the title/SFX-test sequence where an X or Z registered
+  once and then appeared dead until Caps Lock was pressed again.  Verified in GSplus with repeated
+  X presses and with Caps Lock followed by two X presses; SFX/BGM selection and Return-to-game still
+  pass.
+
 ### Engine
 
 - **Upgraded to silky-gs v0.0.2** (`0c341d2`): new keyboard layer (BASIC only in this build), A/B
@@ -35,9 +44,10 @@ Newest first.  Each entry lists the user-visible changes since the one before it
 
 ### Build
 
-- `AlterEgoGS` is 312,871 bytes; `prg.bin` remains exactly 32,768 bytes (the Cow menu changed code,
-  not the PRG's size).  The boot image `emu/AlterEgoJml.2mg` was repackaged with the new
-  application.  Final hashes: app `5EE62010…` (312,871), PRG `1A77DE49…`, image `3C3013D4…`.
+- `AlterEgoGS` is 312,895 bytes; `prg.bin` remains exactly 32,768 bytes (the keyboard aliases changed
+  code bytes but not the PRG size).  The boot image `emu/AlterEgoJml.2mg` was repackaged with the new
+  application, preserving its ProDOS type `S16` / `$DB03`.  Final hashes: app `539383CD…` (312,895),
+  PRG `007DD13E…`, image `359D8C44…`.
 
 ## 2026-10-21
 

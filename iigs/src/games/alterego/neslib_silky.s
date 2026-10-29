@@ -1,4 +1,3 @@
-.import ppumask
 	.include "memmap.inc"
 	.include "silky_shims.inc"
 
@@ -190,8 +189,8 @@ _ppu_off:
 
 _ppu_on_all:
 	lda #%00011110
-	sta ppumask
 	jsr SHIM_2001
+	lda <PPU_CTRL_VAR
 	jsr SHIM_2000
 	rts
 
@@ -238,8 +237,8 @@ _oam_clear:
 ;unsigned char __fastcall__ oam_spr(unsigned char x,unsigned char y,unsigned char chrnum,unsigned char attr,unsigned char sprid);
 
 _oam_spr:
-
-
+	phk
+	plb
 	sta <NEXTSPR
 	asl a
 	asl a
@@ -545,7 +544,7 @@ _pad_poll:
 	beq	@start
 	cmp	#$03		; keypad Enter
 	beq	@start
-	cmp	#$50		; P (pause/start)
+	cmp	#$50		; P (also start; diagnostic-friendly)
 	beq	@start
 	cmp	#$70		; p
 	bne	@k5
@@ -559,6 +558,10 @@ _pad_poll:
 	beq	@a
 	cmp	#$7A		; z
 	beq	@a
+	cmp	#$1A		; Ctrl-Z / some ADB keyboards
+	beq	@a
+	cmp	#$06		; raw ADB Z
+	beq	@a
 	cmp	#$20		; Space
 	bne	@k7
 @a:	lda	#$01
@@ -566,6 +569,10 @@ _pad_poll:
 @k7:	cmp	#$58		; X
 	beq	@b
 	cmp	#$78		; x
+	beq	@b
+	cmp	#$18		; Ctrl-X / some ADB keyboards
+	beq	@b
+	cmp	#$07		; raw ADB X
 	bne	@no_key
 @b:	lda	#$02
 	bra	@store

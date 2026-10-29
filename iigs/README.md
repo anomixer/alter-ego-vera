@@ -10,7 +10,7 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (312,871 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (312,895 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
@@ -93,15 +93,24 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (312,871 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (312,895 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes.  The committed `prg.bin` is built from
 `C:\dev\alter-ego\build\silky\variants\game_apop1.c` with the VERA-style title menu and pause
 **EXIT GAME** added, the water-only nametable animation folded into the source (`bank_bg(0)` plus
 the `$E0–$E3` page-0 wave tiles), and the FamiTone audio driver/objects linked as before.  The title
 keeps the original `src/title.h` palette data and lifts the logo with a scroll of y=8; the last-life
-pause menu hides RESTART and moves EXIT into its row.  The old `build/silky` object files are not used
-for this revision;
-re-derive any binary patch from a fresh link if you rebuild the PRG.
+pause menu hides RESTART and moves EXIT into its row.  The app build only consumes `prg.bin`; the
+current PRG was relinked from the `build/silky` objects (`crt0_silky.o`, `neslib_silky.o`,
+`game_cow.o`, `audio_silky.o`, `nes.lib`):
+
+```powershell
+cd C:\dev\alter-ego\build\silky
+ca65 --cpu 65816 -I . neslib_silky.s -o neslib_silky.o
+ld65 -C nes_silky.cfg -o prg.bin crt0_silky.o neslib_silky.o variants\game_cow.o audio_silky.o C:\dev\cc65\lib\nes.lib
+```
+
+`neslib_silky.s` is 65816 code, so `ca65 --cpu 65816` is mandatory; the plain 6502 default rejects
+`phk`/`plb`.  Re-derive any binary patch from a fresh link if you rebuild the PRG.
 
 ## Repackage the boot image
 
@@ -143,10 +152,14 @@ The game keeps the original NES control scheme.  The keyboard mapping implemente
 | Input | NES function |
 |---|---|
 | Arrow keys | D-pad |
-| **Z** or **Space** | **A** |
-| **X** | **B** |
+| **Z**/**z** or **Space** | **A** |
+| **X**/**x** | **B** |
 | **Return** or **P** | **Start** |
 | **Tab** | **Select** |
+
+Both letter cases are accepted, so **Caps Lock is not required**; the shim also accepts Ctrl-X /
+Ctrl-Z and the raw ADB Z/X codes (`$06`/`$07`) that some keyboard-driver configurations expose.  This
+keeps a quick X/Z tap working repeatedly without pressing Caps Lock between presses.
 
 The title menu also accepts **X** as “next line” and **Z** as “previous line”, so it can be driven
 without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause menu accepts **X** /
