@@ -1268,7 +1268,7 @@ void game_loop(void)
 				if((spr&TILE_WATER)==TILE_WATER)
 				{
 					vram_adr(0x20c0+i16);
-					vram_put(j?(unsigned char)(0xe1+(spr&3)):(unsigned char)(0x1c+(spr&3)));
+					vram_put(j?(unsigned char)(0xe0+(spr&3)):(unsigned char)(0x1c+(spr&3)));
 				}
 			}
 		}

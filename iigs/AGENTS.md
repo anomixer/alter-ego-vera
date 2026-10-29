@@ -19,9 +19,13 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
   v0.0.2's BASIC-only default.  The config screen now opens with Shift-/ in the automated GSplus
   test and the engine suspends interrupts while it is open.
 - Restored the sea animation without the 12 fps full-screen CHR toggle:
-  - `chr.bin` page-0 tiles `$E1–$E4` contain the page-1 water art; `game_add_background` preserves
+  - `chr.bin` page-0 tiles `$E0–$E3` contain the page-1 water art; `game_add_background` preserves
     the low two bits of `TILE_WATER`, and the every-16-frames pass rewrites only the water
     nametable cells with `vram_adr`/`vram_put`.
+  - The water tiles deliberately stop before `$E4`: that tile is the HUD's `×` glyph (the stats
+    meta-sprite and the `×5`/`×2` counters).  An earlier `$E1–$E4` layout overwrote it and made the
+    top-left counters unreadable; moving the four wave variants to `$E0–$E3` fixed the HUD while
+    keeping the sea animation.
   - The map scan uses a pointer (`mp = map; spr = *mp++`) because the generated 6502 indexing did
     not carry across a 256-byte page boundary.
 - Palette layouts for game 1–5, GAME OVER and WELL DONE were regenerated; gameplay now has a
@@ -33,6 +37,8 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
   Return starts level 0.
 - Shift-/ opens the control panel; the v0.0.2 interrupt suspend/resume path is active.
 - Water animation frames differ at the 16-frame cadence and repeat with the expected period.
+- HUD counters verified after the CHR fix: `shot_hudfix_a.png` shows `×5` and `×2` beside the
+  player/ego icons, and the sea still animates (`shot_hudfix_a/b/c.png` differ in the water rows).
 
 ### Current artifacts
 
@@ -40,12 +46,12 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 |---|---|
 | Image | `iigs/emu/AlterEgoJml.2mg` |
 | Image size | 10,485,824 bytes |
-| Image SHA-256 | `06F7EA15F2A888BFA3E5016C5B55CA371DEAC0D05EB8BFD70172DAB167EB36F2` |
-| App | `iigs/src/games/alterego/AlterEgoGS`, 312,836 bytes |
-| App SHA-256 | `5E9DC9AB98B044D3812F88ABC76C1E10E2B2581CC43D968F799FBC291E66D884` |
-| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (water-animation FamiTone build) |
-| PRG SHA-256 | `E53FEC0FD2D6EB46E8614FD7457BDA2EB98C9D611EEDFBBCCFD690D3763F1D9F` |
-| CHR SHA-256 | `B6BFDB99318828BEEB357CC302673955691BE0BD3837D48CC18E46690ED32CC1` |
+| Image SHA-256 | `4EFD048CE50C20A44943526680454782CC6B7F390B4911A1447128EC368A6150` |
+| App | `iigs/src/games/alterego/AlterEgoGS`, 312,872 bytes |
+| App SHA-256 | `6EDE3124C01CE9AB69DB52D2839B8EDBA456548CECACA0796959BD1C07B0E0D1` |
+| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (E0 water, FamiTone build) |
+| PRG SHA-256 | `AC4C094FA0C31151F36B4171B67639E2735654301DB033179B5568AAFE82B929` |
+| CHR SHA-256 | `7656616C52D4ACC34C745CAFB99B664CD49D4E4F4DBBCE7ED58ECA03EABCB1C0` |
 | GSplus config | `iigs/emu/gsplus-alterego-jml.kegs` |
 
 ## 2026-10-27 — snapshot and branch `test/gs`

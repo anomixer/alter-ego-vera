@@ -13,8 +13,11 @@ Newest first.  Each entry lists the user-visible changes since the one before it
 
 ### Graphics
 
-- Restored the animated sea without the 12 fps full-screen CHR toggle: page-0 tiles `$E1–$E4` hold
+- Restored the animated sea without the 12 fps full-screen CHR toggle: page-0 tiles `$E0–$E3` hold
   the alternate wave art, and only the water nametable cells are rewritten every 16 frames.
+- Fixed the garbled top-left HUD counters: the water art had overwritten tile `$E4`, which is the
+  `×` glyph used by the stats meta-sprite.  The four wave variants now live in `$E0–$E3`, leaving
+  `$E4` and the `$E5…` digit tiles intact, so the player/ego counts read `×5` and `×2` again.
 - Palette fixes for gameplay: blue-clothed player, green wall plants, blue/cyan water (the sea no
   longer shows the red line).
 - Title logo keeps its original ALTER EGO palette and one-tile lift; GAME OVER and WELL DONE use the
@@ -22,8 +25,9 @@ Newest first.  Each entry lists the user-visible changes since the one before it
 
 ### Build
 
-- `AlterEgoGS` is 312,836 bytes; `prg.bin` remains exactly 32,768 bytes.  The boot image
-  `emu/AlterEgoJml.2mg` was repackaged with the new application.
+- `AlterEgoGS` is 312,872 bytes; `prg.bin` remains exactly 32,768 bytes (the CHR fix moved the
+  wave art, not the PRG's size).  The boot image `emu/AlterEgoJml.2mg` was repackaged with the new
+  application.
 
 ## 2026-10-21
 

@@ -10,7 +10,7 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (312,836 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (312,872 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
@@ -34,7 +34,7 @@ current bootable 3.5" image:
 - At the factory **2.8 MHz** setting gameplay renders at about **30 fps**.  The game's every-16-frames
   background CHR pattern-table toggle (`bank_bg`) is avoided, because the toggle forced a full-screen
   tile redraw and limited the port to roughly 12 fps.  Instead, the port keeps pattern page 0 and
-  copies the page-1 water variants into spare page-0 tiles `$E1–$E4`; every 16 frames it rewrites
+  copies the page-1 water variants into spare page-0 tiles `$E0–$E3`; every 16 frames it rewrites
   only the water nametable cells with `vram_adr`/`vram_put`.  The sea therefore animates at the
   original cadence while the rest of the playfield stays static and the dirty grid still runs at
   full speed.
@@ -44,6 +44,11 @@ current bootable 3.5" image:
   and suspends/resumes the engine's interrupt handling while the control panel is open.  The port
   keeps its own `yieldFrame`, `YOffsetDyn`/`LayoutActiveDyn` direct-page fields, startup border
   diagnostics, and the `OAM_COPY` HUD probe.
+  - Upstream v0.0.2 itself defaults to BASIC (`KBD_J13=0`, `KBD_ADB=0`); J13 and ADB are optional
+    flags that also need their source files added to `src/runtime/code.txt` (ADB additionally needs
+    `rom_kbd_j13.s`).  This port follows that default.  BASIC is sufficient for Alter Ego's
+    one-key-at-a-time `_pad_poll` shim and avoids the ADB driver's known control-panel limitation
+    (`ToBRAMSetup` drops its SRQ routine until the panel is closed).
 - The title uses the VERA port's four-button menu: **START GAME**, **START LEVEL** (1–25),
   **MUSIC ON/OFF**, **SOUND ON/OFF**.  The old blinking `PRESS START` prompt is hidden on both
   nametables so the menu is the only title prompt.  The menu is drawn into both nametables, and the
@@ -87,11 +92,11 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (312,836 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (312,872 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes.  The committed `prg.bin` is built from
 `C:\dev\alter-ego\build\silky\variants\game_apop1.c` with the VERA-style title menu and pause
 **EXIT GAME** added, the water-only nametable animation folded into the source (`bank_bg(0)` plus
-the `$E1–$E4` page-0 wave tiles), and the FamiTone audio driver/objects linked as before.  The title
+the `$E0–$E3` page-0 wave tiles), and the FamiTone audio driver/objects linked as before.  The title
 keeps the original `src/title.h` palette data and lifts the logo with a scroll of y=8; the last-life
 pause menu hides RESTART and moves EXIT into its row.  The old `build/silky` object files are not used
 for this revision;
