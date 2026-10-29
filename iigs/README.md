@@ -160,6 +160,24 @@ without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause 
 - **MUSIC ON/OFF** and **SOUND ON/OFF** — press **Return/P** to toggle, or **Left/Right** to toggle.
 - Press **Return/P** on **START GAME** or **START LEVEL** to begin.
 
+### Sound test (SFX/BGM)
+
+From the **title screen**, press **Tab** (Select); the `MUSIC ON` row expands to `SFX 00 BGM 00`.
+The sound test is a title-screen mode only — it is not available from the pause menu.
+
+- **Left** selects **SFX**, **Right** selects **BGM**.  There is no separate cursor: the last of
+  these directions pressed decides whether Up/Down edits the SFX number or the BGM number.
+- **Up** increases and **Down** decreases the selected number.  SFX is **00–14**; BGM is **00–07**.
+- **X (B)** plays the selected SFX, or starts the selected BGM.  **Z / Space (A)** stops the BGM.
+- **Return / P (Start)** leaves the sound test and starts the game at the normal default level
+  (Level 1); it does not return to the title menu.
+
+SFX numbers, in order: **00 START**, **01 MENU**, **02 EXCHANGE**, **03 ITEM1**, **04 ITEM2**,
+**05 HIT**, **06 FALLING**, **07 DROP**, **08 NO_EXCHANGE**, **09 OUT_OF_EXCHANGES**,
+**10 BRIDGE**, **11 WALK1**, **12 WALK2**, **13 LADDER**, **14 LEVEL_CLEAR**.
+BGM numbers: **00 TITLE**, **01 GAME1** (levels 1–5 and the Cow Level), **02 GAME2** (6–10),
+**03 GAME3** (11–15), **04 GAME4** (16–20), **05 GAME5** (21–25), **06 GAME OVER**, **07 WELL DONE**.
+
 ### Pause menu
 
 In game, **Return/P** opens the pause menu.  Choose **RESUME**, **RESTART**, or **EXIT GAME** with
@@ -195,9 +213,10 @@ corresponding video, game, player-2 and joystick panels are not present.
 ## Legacy title secrets
 
 The NES title secrets are still present in the game code, but the IIgs keyboard shim reads only one
-key per poll.  The simultaneous **A+B** Sound Test and the sequential level-unlock code therefore
-cannot be entered reliably from the keyboard.  The original **Select+Start** Cow Level chord is also
-unreachable because this port maps **Tab** to the sound test; use **START LEVEL `00`** instead.
+key per poll.  The simultaneous **A+B** Sound Test chord and the sequential level-unlock code
+therefore cannot be entered reliably from the keyboard; use **Tab** for the sound test instead.  The
+original **Select+Start** Cow Level chord is also unreachable because this port maps **Tab** to the
+sound test; use **START LEVEL `00`** instead.
 
 ## Notes on the port
 

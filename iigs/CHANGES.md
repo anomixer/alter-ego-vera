@@ -16,6 +16,11 @@ Newest first.  Each entry lists the user-visible changes since the one before it
   normal boot never lands on the Cow Level by accident.  With the port's Tab = sound test mapping,
   select START LEVEL with Down, then press Left/Right to reach `00` and Return.
 
+- Documented the title-screen **sound test**: press **Tab** to open it, **Left/Right** choose the
+  SFX or BGM column, **Up/Down** step the number, **X** plays the selected entry, **A** stops the
+  BGM, and **Return/P** leaves the test and starts the game.  The full SFX/BGM number list is in
+  `README.md`.
+
 ### Graphics
 
 - Restored the animated sea without the 12 fps full-screen CHR toggle: page-0 tiles `$E0–$E3` hold
