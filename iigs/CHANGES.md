@@ -30,6 +30,17 @@ Newest first.  Each entry lists the user-visible changes since the one before it
   BGM, and **Return/P** leaves the test and starts the game.  The full SFX/BGM number list is in
   `README.md`.
 
+- **Sound test selection is now visible.**  The selected SFX or BGM number is recolored to yellow
+  through its background attribute quadrant; the other number stays blue.  This replaces the old
+  invisible-selection behavior where Up/Down edited a field with no on-screen indication.
+  `Left`/`Right` update the highlight immediately, and **Tab** closes the test and restores the
+  normal title menu.  Entering with a held Tab is safe: the readout stays open after release, and the
+  next Tab press collapses it.
+
+- **One blank column before `SFX`.**  `SFX` starts at column 20 and the digits at column 24, so
+  `MUSIC OFF` (ending at column 18) keeps a visible gap and no longer runs into the label.  Verified
+  with the title menu set to `MUSIC OFF` and the sound test open.
+
 ### Graphics
 
 - Restored the animated sea without the 12 fps full-screen CHR toggle: page-0 tiles `$E0–$E3` hold
@@ -44,10 +55,12 @@ Newest first.  Each entry lists the user-visible changes since the one before it
 
 ### Build
 
-- `AlterEgoGS` is 312,895 bytes; `prg.bin` remains exactly 32,768 bytes (the keyboard aliases changed
-  code bytes but not the PRG size).  The boot image `emu/AlterEgoJml.2mg` was repackaged with the new
-  application, preserving its ProDOS type `S16` / `$DB03`.  Final hashes: app `539383CD…` (312,895),
-  PRG `007DD13E…`, image `359D8C44…`.
+- `AlterEgoGS` is 313,192 bytes; `prg.bin` remains exactly 32,768 bytes (the keyboard aliases and
+  title attribute code changed code bytes but not the PRG size).  The boot image
+  `emu/AlterEgoJml.2mg` was repackaged with the new application, preserving its ProDOS type `S16` /
+  `$DB03`.  Final hashes: app `0C4005C5…` (313,192), PRG `4B82561A…`, image `A379460F…`.  Verified
+  on a cold boot of the final image: X works without Caps Lock, the sound-test `SFX 00` highlight is
+  yellow, `MUSIC OFF` keeps a gap before `SFX`, and Tab returns to the title menu.
 
 ## 2026-10-21
 

@@ -49,10 +49,12 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 - Cow Level verified from a level-0 build: `shot_cow0_2cow.png` shows the distinct **COW LEVEL**
   banner and map, while normal builds still begin at level 1 (`shot_finalcheck_a.png`).
 - X/Z case/repeat check on the new build: repeated X without Caps Lock moved the cursor
-  `START LEVEL 01` → `MUSIC ON` → `SOUND ON`; Caps Lock followed by two X presses also worked
-  (`shot_caps_1x.png`, `shot_caps_3x.png`, `shot_caps_6capsxx.png`).  The sound-test pass produced
-  `SFX 00 BGM 00`, `SFX 01 BGM 00`, `SFX 01 BGM 01`, and Return entered Level 1
-  (`shot_keyfix_1sound.png` … `shot_keyfix_6game.png`).
+  `START LEVEL 01` → `MUSIC ON` → `SOUND ON`; Caps Lock followed by two X presses also worked.
+  The sound-test pass produced `SFX 00 BGM 00`, `SFX 01 BGM 00`, `SFX 01 BGM 01`, and Return entered
+  Level 1.  The final repackaged image was also cold-booted: the first X press moved the title cursor
+  with no Caps Lock press.  Sound-test verification on the final image: `MUSIC OFF` keeps a blank
+  column before `SFX`, the selected number turns yellow, Left/Right switches the yellow field, and
+  Tab returns to the title menu with `MUSIC OFF` preserved.
 
 ### Current artifacts
 
@@ -60,11 +62,11 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 |---|---|
 | Image | `iigs/emu/AlterEgoJml.2mg` |
 | Image size | 10,485,824 bytes |
-| Image SHA-256 | `359D8C446C97FA827DE056092C47A2A17D3304DFC9841367340C01487F829A16` |
-| App | `iigs/src/games/alterego/AlterEgoGS`, 312,895 bytes |
-| App SHA-256 | `539383CD0D7ED2E7445DC185C65E1D623CBEA32105ACF06063DCD2B98E738DB7` |
-| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (E0 water, Cow menu, FamiTone build, X/Z aliases) |
-| PRG SHA-256 | `007DD13EB35795A74C35617763D202B4430DA4D39AD7580BFE3542C2D2D656BB` |
+| Image SHA-256 | `A379460FC24293EB08DC13D88CEF0E55B8D5364CA7051E8679FB39088E7A9F32` |
+| App | `iigs/src/games/alterego/AlterEgoGS`, 313,192 bytes |
+| App SHA-256 | `0C4005C5ADBA5719A7F24D912F344AEDC24AC1398D4F7A2BA2A2EA66819D42B0` |
+| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (E0 water, Cow menu, FamiTone build, X/Z aliases, title-attribute sound test) |
+| PRG SHA-256 | `4B82561A0255FE70D606A01A7A2AACD435B43A3D0D4E7294FC7D7EF75A2DDB76` |
 | CHR SHA-256 | `7656616C52D4ACC34C745CAFB99B664CD49D4E4F4DBBCE7ED58ECA03EABCB1C0` |
 | GSplus config | `iigs/emu/gsplus-alterego-jml.kegs` |
 
@@ -153,19 +155,15 @@ cd C:\dev\alter-ego-vera\iigs\src\games\alterego
 node build.js
 ```
 
-The verified output is:
+The verified current build ends with `AlterEgoGS: 387117 -> 313192 bytes`; `prg.bin` remains
+exactly 32,768 bytes.  The segment lines immediately above it vary with the title-attribute code, but
+`PPU2`, `CHRDATA`, `AEROM` and `PPURAM` were last `58427`, `62717`, `33633` and `7812` bytes.
 
-```
-MAIN         23732 -> 22319 bytes
-STKDP        6470 -> 65 bytes
-ENGINE       31638 -> 26789 bytes
-PPU1         61787 -> 58426 bytes
-PPU2         61787 -> 58427 bytes
-CHRDATA      65606 -> 62730 bytes
-AEROM        65828 -> 31766 bytes
-PPURAM       16454 -> 7753 bytes
-AlterEgoGS: 333302 -> 268275 bytes
-```
+`build.js` regenerates `palettes.s`, `pal_transitions.s` and `pal_defs.s` from `palettes/*.txt`, but
+it does **not** regenerate the C `palettes.h` arrays.  When a `palettes/*.txt` entry used by the C
+title code changes (for example the title `BG2` colours used by the yellow sound-test highlight),
+update `src/games/alterego/palettes.h` too and copy it into the C build directory; otherwise the app
+links the old colours even though the generated assembly looks correct.
 
 `package.json` `config.merlin32` is `C:\dev\Merlin32.exe`; `config.cadius` is `C:\dev\cadius.exe`.
 `PROJECT_ROOT` is inferred from `scripts/lib/nromBuild.js`, so the build must run from inside the
@@ -239,7 +237,7 @@ If a border/overlay is needed later, it must be gated on a valid game screen and
 ### Audio
 
 The current image is built from the **audio-enabled FamiTone PRG** (`prg.bin`, SHA-256
-`28328DB5…`). The earlier `Emulated state corrupt` crash was fixed by padding the APU trampoline
+`4B82561A…`). The earlier `Emulated state corrupt` crash was fixed by padding the APU trampoline
 table to `$7E30` and keeping the FamiTone init in 8-bit mode (`sep #$20`). A host loopback capture
 of GSplus gameplay measured RMS 3532 / peak 27610, so the current build is audible; do not replace
 `prg.bin` with the old audio-off baseline.
@@ -278,8 +276,10 @@ of GSplus gameplay measured RMS 3532 / peak 27610, so the current build is audib
    `test/gs`; the boot image has been verified on GSplus.
 2. Keep `prg.bin` as the water-animation, audio-enabled 32,768-byte FamiTone build; do not rebuild
    it from the historical audio-off baseline.
-3. Still to do when the user reopens them: the music-test/Sound Test entry (deferred) and a final
-   capture of GAME OVER / WELL DONE and levels 2–5 with the new palette layouts.
+3. Still to do when the user reopens them: a final
+   capture of GAME OVER / WELL DONE and levels 2–5 with the new palette layouts.  The title sound
+   test is no longer deferred: Tab opens/closes it, the selected number is yellow, and the column
+   layout has a blank before `SFX`.
 4. Remaining untracked files are investigation screenshots; they are not part of the deliverable.
 
 ## Provenance
