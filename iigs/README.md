@@ -10,7 +10,7 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (313,192 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (312,895 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
@@ -93,7 +93,7 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (313,192 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (312,895 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes.  The committed `prg.bin` is built from
 `C:\dev\alter-ego\build\silky\variants\game_apop1.c` with the VERA-style title menu and pause
 **EXIT GAME** added, the water-only nametable animation folded into the source (`bank_bg(0)` plus
@@ -159,10 +159,7 @@ The game keeps the original NES control scheme.  The keyboard mapping implemente
 
 Both letter cases are accepted, so **Caps Lock is not required**; the shim also accepts Ctrl-X /
 Ctrl-Z and the raw ADB Z/X codes (`$06`/`$07`) that some keyboard-driver configurations expose.  This
-keeps a quick X/Z tap working repeatedly without pressing Caps Lock between presses.  Verified on a
-cold boot of the repackaged `emu/AlterEgoJml.2mg`: the first X press moves the title cursor with no
-Caps Lock press, and repeated X presses keep working.  If an older image is still running, replace it
-with the image in `emu/` before testing this.
+keeps a quick X/Z tap working repeatedly without pressing Caps Lock between presses.
 
 The title menu also accepts **X** as “next line” and **Z** as “previous line”, so it can be driven
 without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause menu accepts **X** /
@@ -178,19 +175,15 @@ without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause 
 
 ### Sound test (SFX/BGM)
 
-From the **title screen**, press **Tab** (Select); the `MUSIC ON` row expands to **`SFX 00 BGM 00`**
-(one blank column is kept before `SFX`, so it never touches `MUSIC OFF`).  The sound test is a
-title-screen mode only — it is not available from the pause menu.  Holding Tab to open it is fine;
-releasing Tab leaves the test open, and a later **Tab** press collapses it back to the normal title
-menu.
+From the **title screen**, press **Tab** (Select); the `MUSIC ON` row expands to `SFX 00 BGM 00`.
+The sound test is a title-screen mode only — it is not available from the pause menu.
 
-- **Left** selects **SFX**, **Right** selects **BGM**.  The selected field is shown by changing its
-  digits to **yellow** (the unselected number stays blue), so it is obvious which Up/Down will edit.
+- **Left** selects **SFX**, **Right** selects **BGM**.  There is no separate cursor: the last of
+  these directions pressed decides whether Up/Down edits the SFX number or the BGM number.
 - **Up** increases and **Down** decreases the selected number.  SFX is **00–14**; BGM is **00–07**.
 - **X (B)** plays the selected SFX, or starts the selected BGM.  **Z / Space (A)** stops the BGM.
-- **Tab (Select)** closes the sound test and restores the title menu (the saved MUSIC/SOUND settings
-  are preserved).  **Return / P (Start)** leaves the sound test and starts the game at the normal
-  default level (Level 1); it does not return to the title menu.
+- **Return / P (Start)** leaves the sound test and starts the game at the normal default level
+  (Level 1); it does not return to the title menu.
 
 SFX numbers, in order: **00 START**, **01 MENU**, **02 EXCHANGE**, **03 ITEM1**, **04 ITEM2**,
 **05 HIT**, **06 FALLING**, **07 DROP**, **08 NO_EXCHANGE**, **09 OUT_OF_EXCHANGES**,

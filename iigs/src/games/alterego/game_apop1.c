@@ -508,62 +508,19 @@ static void title_draw_level(void)
 	title_draw_text(21,22,d);
 }
 
-/* The sound-test readout shares row 23 with MUSIC ON.  There is one
- * blank column after "MUSIC OFF" before SFX, and the six background
- * characters stay clear of it. */
+/* The sound-test readout shares row 23 with MUSIC ON.  Draw it as
+ * background text to the right of the menu so all six characters fit
+ * without hitting the PPU's eight-sprites-per-scanline limit. */
 static void title_draw_sound_values(void)
 {
 	char d[3];
 	d[0]=(char)('0'+px/10);
 	d[1]=(char)('0'+px%10);
 	d[2]=0;
-	title_draw_text(23,24,d);
+	title_draw_text(23,23,d);
 	d[0]=(char)('0'+py/10);
 	d[1]=(char)('0'+py%10);
-	d[2]=0;
 	title_draw_text(23,30,d);
-}
-
-/* The sound-test digits share attribute blocks with the blank title art.
- * Remember the two blocks while the PPU is off, then give only the selected
- * digit quadrant the title's warm palette (BG1) and restore it on exit. */
-static unsigned char title_attr_sfx=0xff;
-static unsigned char title_attr_bgm=0xff;
-
-static void title_sound_attrs(unsigned char sel)
-{
-	unsigned int base;
-
-	ppu_off();
-	for(base=0x23c0;base<=0x27c0;base+=0x400)
-	{
-		/* SFX digits are the bottom-left quadrant of the col 24-27 block. */
-		vram_adr(base+5*8+6);
-		vram_put((unsigned char)(sel==0?((title_attr_sfx&0xcf)|0x20):title_attr_sfx));
-		/* BGM digits are the bottom-right quadrant of the col 28-31 block. */
-		vram_adr(base+5*8+7);
-		vram_put((unsigned char)(sel==1?((title_attr_bgm&0x3f)|0x80):title_attr_bgm));
-	}
-	ppu_on_all();
-}
-
-static void title_sound_attrs_close(void)
-{
-	unsigned int base;
-
-	ppu_off();
-	for(base=0x23c0;base<=0x27c0;base+=0x400)
-	{
-		vram_adr(base+5*8+6); vram_put(title_attr_sfx);
-		vram_adr(base+5*8+7); vram_put(title_attr_bgm);
-	}
-	ppu_on_all();
-}
-
-/* Erase the whole sound-test extension of row 23 (column 18..31). */
-static void title_clear_sound(void)
-{
-	title_clear_row(23,18,14);
 }
 
 
@@ -712,9 +669,6 @@ void title_screen(void)
 	title_draw_menu();
 	title_draw_level();
 
-/* Returning from the sound test restarts the title menu here without
- * replaying the title art or the fade-in. */
-title_menu_again:
 	j=0;
 	atr=16;
 	frame_cnt=0;
@@ -788,8 +742,7 @@ title_menu_again:
 			/* The original NES sound test needs A+B+Start.  The IIgs
 			 * keyboard shim can only see one key code, so Tab (Select)
 			 * opens the sound test directly instead of requiring a
-			 * chord.  Tab again collapses it back to the title menu;
-			 * Start leaves it and starts the game. */
+			 * chord.  Start leaves it. */
 			if(i&PAD_SELECT)
 			{
 				py=1;
@@ -856,16 +809,14 @@ title_menu_again:
 	if(py)//sound test
 	{
 		/* The readout is background text to the right of MUSIC ON:
-		 * MUSIC ON ends at column 17, MUSIC OFF at column 18, so SFX
-		 * starts one blank column later at 20. */
-		title_draw_text(23,20,"SFX");
-		title_draw_text(23,27,"BGM");
+		 * MUSIC ON ends at column 17; SFX starts at column 19. */
+		title_draw_text(23,19,"SFX");
+		title_draw_text(23,26,"BGM");
 
 		j=0;
 		px=0;
 		py=0;
 		title_draw_sound_values();
-		title_sound_attrs(0);
 
 		while(1)
 		{
@@ -875,23 +826,10 @@ title_menu_again:
 			ppu_waitnmi();
 			i=pad_trigger();
 
-			/* Tab collapses the sound test and returns to the menu. */
-			if(i&PAD_SELECT)
-			{
-				oam_clear();
-				title_clear_sound();
-				title_sound_attrs_close();
-				title_draw_menu();
-				title_draw_level();
-				if(!music_muted) music_play(musicData[MUS_TITLE]);
-				py=0;
-				goto title_menu_again;
-			}
-
 			if(i&PAD_START) break;
 
-			if(i&PAD_LEFT)  { j=0; title_sound_attrs(0); }
-			if(i&PAD_RIGHT) { j=1; title_sound_attrs(1); }
+			if(i&PAD_LEFT)  j=0;
+			if(i&PAD_RIGHT) j=1;
 
 			if(i&PAD_UP)
 			{
