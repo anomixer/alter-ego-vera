@@ -195,9 +195,9 @@ corresponding video, game, player-2 and joystick panels are not present.
 ## Legacy title secrets
 
 The NES title secrets are still present in the game code, but the IIgs keyboard shim reads only one
-key per poll.  As a result the simultaneous **A+B** Sound Test and the **Tab+Return** Cow Level
-chord cannot be entered reliably from the keyboard.  The sequential level-unlock code is also
-unverified in this build; do not treat it as a supported control.  Use the title menu above instead.
+key per poll.  The simultaneous **A+B** Sound Test and the sequential level-unlock code therefore
+cannot be entered reliably from the keyboard.  The original **Select+Start** Cow Level chord is also
+unreachable because this port maps **Tab** to the sound test; use **START LEVEL `00`** instead.
 
 ## Notes on the port
 
