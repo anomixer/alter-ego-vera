@@ -390,7 +390,7 @@ unsigned char pause;
 unsigned char paused;
 unsigned char music_prev;
 unsigned char title_choice;
-unsigned char title_level;
+unsigned char title_level=1;
 unsigned char music_muted;
 unsigned char sound_muted;
 
@@ -654,7 +654,8 @@ void title_screen(void)
 	for(i=0;i<12;i++) vram_put(0);
 
 	title_choice=0;
-	if(title_level<1||title_level>25) title_level=1;
+	/* 0 is the hidden cow level; START GAME still forces level 1. */
+	if(title_level>25) title_level=1;
 	title_draw_menu();
 	title_draw_level();
 
@@ -685,7 +686,7 @@ void title_screen(void)
 			i=pad_trigger();
 
 			/* Vera-style title buttons: UP/DOWN chooses a line,
-			 * LEFT/RIGHT changes the level or toggles audio. */
+			 * LEFT/RIGHT changes the level (0 = cow level) or toggles audio. */
 			oam_spr(64,(unsigned char)(144+(title_choice<<4)),0xff,0,0);
 			if(i&(PAD_UP|PAD_DOWN|PAD_A|PAD_B|PAD_LEFT|PAD_RIGHT))
 			{

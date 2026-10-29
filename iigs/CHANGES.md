@@ -11,6 +11,11 @@ Newest first.  Each entry lists the user-visible changes since the one before it
   suspended while the control panel is open.  The port keeps its v0.0.1-era `yieldFrame`,
   `YOffsetDyn` / `LayoutActiveDyn` direct-page fields, startup diagnostics, and `OAM_COPY` probe.
 
+- Restored the hidden **Cow Level** as a selectable START LEVEL value: the range is now **0–25**, and
+  `00` starts the Cow Level.  The default value remains 1, and START GAME still forces level 1, so a
+  normal boot never lands on the Cow Level by accident.  With the port's Tab = sound test mapping,
+  select START LEVEL with Down, then press Left/Right to reach `00` and Return.
+
 ### Graphics
 
 - Restored the animated sea without the 12 fps full-screen CHR toggle: page-0 tiles `$E0–$E3` hold
@@ -25,9 +30,9 @@ Newest first.  Each entry lists the user-visible changes since the one before it
 
 ### Build
 
-- `AlterEgoGS` is 312,872 bytes; `prg.bin` remains exactly 32,768 bytes (the CHR fix moved the
-  wave art, not the PRG's size).  The boot image `emu/AlterEgoJml.2mg` was repackaged with the new
-  application.
+- `AlterEgoGS` is 312,871 bytes; `prg.bin` remains exactly 32,768 bytes (the Cow menu changed code,
+  not the PRG's size).  The boot image `emu/AlterEgoJml.2mg` was repackaged with the new
+  application.  Final hashes: app `5EE62010…` (312,871), PRG `1A77DE49…`, image `3C3013D4…`.
 
 ## 2026-10-21
 

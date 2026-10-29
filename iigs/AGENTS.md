@@ -30,15 +30,20 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
     not carry across a 256-byte page boundary.
 - Palette layouts for game 1–5, GAME OVER and WELL DONE were regenerated; gameplay now has a
   blue-clothed player, green wall plants and blue/cyan water (no red sea line).
+- **START LEVEL now accepts 0**, the hidden Cow Level.  The original NES trigger was Select+Start,
+  but this port uses Select (Tab) for the sound test, so 0 is selected with Left/Right on the
+  START LEVEL row.  The initial/default value remains 1, and START GAME still forces level 1.
 
 ### Verified
 
-- New build boots from `emu/AlterEgoJml.2mg`; title has the correct ALTER EGO logo colours, and
-  Return starts level 0.
+- New build boots from `emu/AlterEgoJml.2mg`; the title has the correct ALTER EGO logo colours, and
+  Return on START GAME starts level 1; Return on START LEVEL with `00` starts the Cow Level.
 - Shift-/ opens the control panel; the v0.0.2 interrupt suspend/resume path is active.
 - Water animation frames differ at the 16-frame cadence and repeat with the expected period.
 - HUD counters verified after the CHR fix: `shot_hudfix_a.png` shows `×5` and `×2` beside the
   player/ego icons, and the sea still animates (`shot_hudfix_a/b/c.png` differ in the water rows).
+- Cow Level verified from a level-0 build: `shot_cow0_2cow.png` shows the distinct **COW LEVEL**
+  banner and map, while normal builds still begin at level 1 (`shot_finalcheck_a.png`).
 
 ### Current artifacts
 
@@ -46,11 +51,11 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 |---|---|
 | Image | `iigs/emu/AlterEgoJml.2mg` |
 | Image size | 10,485,824 bytes |
-| Image SHA-256 | `4EFD048CE50C20A44943526680454782CC6B7F390B4911A1447128EC368A6150` |
-| App | `iigs/src/games/alterego/AlterEgoGS`, 312,872 bytes |
-| App SHA-256 | `6EDE3124C01CE9AB69DB52D2839B8EDBA456548CECACA0796959BD1C07B0E0D1` |
-| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (E0 water, FamiTone build) |
-| PRG SHA-256 | `AC4C094FA0C31151F36B4171B67639E2735654301DB033179B5568AAFE82B929` |
+| Image SHA-256 | `3C3013D47625154FC5DDC3E60AB3C19CDE9ABF5B3198DD8E6A65470B8C1AADE6` |
+| App | `iigs/src/games/alterego/AlterEgoGS`, 312,871 bytes |
+| App SHA-256 | `5EE620106460686005D417D892C7028388D7A308354639823406E4FD4398F463` |
+| PRG input | `iigs/src/games/alterego/prg.bin`, exactly 32,768 bytes (E0 water, Cow menu, FamiTone build) |
+| PRG SHA-256 | `1A77DE4974BA9F628AF0ADAB163177E9BC56A2B85F12EE684E8441849B111684` |
 | CHR SHA-256 | `7656616C52D4ACC34C745CAFB99B664CD49D4E4F4DBBCE7ED58ECA03EABCB1C0` |
 | GSplus config | `iigs/emu/gsplus-alterego-jml.kegs` |
 

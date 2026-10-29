@@ -10,7 +10,7 @@ It is a snapshot of the working tree that was used to bring Alter Ego up on GSpl
 current bootable 3.5" image:
 
 - **Boot image:** [`emu/AlterEgoJml.2mg`](emu/AlterEgoJml.2mg) (10 MB ProDOS image)
-- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (312,872 bytes)
+- **Application:** [`src/games/alterego/AlterEgoGS`](src/games/alterego/AlterEgoGS) (312,871 bytes)
 - **Current screen:** ![Alter Ego gameplay on GSplus](docs/screenshots/shot_final_aligned_game.png)
 - **Credits:** ![Alter Ego credits on GSplus](docs/screenshots/shot_final_credits.png)
 - **Title:** ![Alter Ego title on GSplus](docs/screenshots/shot_final_title.png)
@@ -49,7 +49,8 @@ current bootable 3.5" image:
     `rom_kbd_j13.s`).  This port follows that default.  BASIC is sufficient for Alter Ego's
     one-key-at-a-time `_pad_poll` shim and avoids the ADB driver's known control-panel limitation
     (`ToBRAMSetup` drops its SRQ routine until the panel is closed).
-- The title uses the VERA port's four-button menu: **START GAME**, **START LEVEL** (1–25),
+- The title uses the VERA port's four-button menu: **START GAME**, **START LEVEL** (0–25; 0 is the
+  hidden Cow Level),
   **MUSIC ON/OFF**, **SOUND ON/OFF**.  The old blinking `PRESS START` prompt is hidden on both
   nametables so the menu is the only title prompt.  The menu is drawn into both nametables, and the
   title's scroll y=8 keeps the renderer on nametable 0 while lifting the logo one tile.
@@ -92,7 +93,7 @@ cd iigs\src\games\alterego
 node build.js
 ```
 
-The build prints the segment sizes and writes `AlterEgoGS` (312,872 bytes). The input
+The build prints the segment sizes and writes `AlterEgoGS` (312,871 bytes). The input
 `src/games/alterego/prg.bin` must stay exactly 32,768 bytes.  The committed `prg.bin` is built from
 `C:\dev\alter-ego\build\silky\variants\game_apop1.c` with the VERA-style title menu and pause
 **EXIT GAME** added, the water-only nametable animation folded into the source (`bank_bg(0)` plus
@@ -154,7 +155,8 @@ without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause 
 ### Title menu
 
 - **START GAME** — start at level 1.
-- **START LEVEL** — choose level 1–25 with **Left/Right**; the number is shown at the end of the row.
+- **START LEVEL** — choose level 0–25 with **Left/Right**; 0 is the hidden Cow Level, while
+  **START GAME** always starts at level 1.  The number is shown at the end of the row.
 - **MUSIC ON/OFF** and **SOUND ON/OFF** — press **Return/P** to toggle, or **Left/Right** to toggle.
 - Press **Return/P** on **START GAME** or **START LEVEL** to begin.
 
