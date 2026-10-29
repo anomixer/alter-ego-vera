@@ -54,6 +54,12 @@ current bootable 3.5" image:
   **MUSIC ON/OFF**, **SOUND ON/OFF**.  The old blinking `PRESS START` prompt is hidden on both
   nametables so the menu is the only title prompt.  The menu is drawn into both nametables, and the
   title's scroll y=8 keeps the renderer on nametable 0 while lifting the logo one tile.
+- **Tab** on the title opens the sound test, which reuses row 23 as
+  `MUSIC ON  SFX00 BGM00` (`MUSIC OFF` keeps one blank before `SFX`); **Tab** again closes it and
+  returns to the menu.  The four counter digits are OAM sprites, as in the original NES build, so
+  they stay out of the background's 16×16 attribute blocks.  `palettes/title.txt` sprite row 1
+  carries the logo's pale yellow (`$38`) and row 2 repeats the menu's light blue (`$0F,$01,$11,$21`),
+  so Left/Right only recolours the selected pair of digits.
 - Credits stay on nametable 0.
 - Audio is the original FamiTone2 driver and data, routed through the silky-gs APU model.  FamiTone
   is 8-bit code and its APU trampolines start at `$7E30`; both details are required, otherwise the
@@ -158,12 +164,16 @@ The game keeps the original NES control scheme.  The keyboard mapping implemente
 | **Tab** | **Select** |
 
 Both letter cases are accepted, so **Caps Lock is not required**; the shim also accepts Ctrl-X /
-Ctrl-Z and the raw ADB Z/X codes (`$06`/`$07`) that some keyboard-driver configurations expose.  This
-keeps a quick X/Z tap working repeatedly without pressing Caps Lock between presses.
+Ctrl-Z and the raw ADB Z/X codes (`$06`/`$07`) that some keyboard-driver configurations expose, and
+as a last resort it compares only the low five bits of `$C000` (`x`/`X` are `$18` there, `z`/`Z` are
+`$1A`), so whatever case or strobe bits the keyboard, ROM or emulator adds to the top of the byte
+cannot stop X/Z from reaching the game.  This keeps a quick X/Z tap working repeatedly without
+pressing Caps Lock between presses.
 
 The title menu also accepts **X** as “next line” and **Z** as “previous line”, so it can be driven
 without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause menu accepts **X** /
-**Z** the same way.
+**Z** the same way.  In the **sound test** **Space** also auditions the selected SFX/BGM (see below),
+because `_pad_poll` reports it separately from Z through the `pad_space` byte.
 
 ### Title menu
 
@@ -175,15 +185,32 @@ without the arrow keys; **Left/Right** adjust the START LEVEL value.  The pause 
 
 ### Sound test (SFX/BGM)
 
-From the **title screen**, press **Tab** (Select); the `MUSIC ON` row expands to `SFX 00 BGM 00`.
-The sound test is a title-screen mode only — it is not available from the pause menu.
+From the **title screen**, press **Tab** (Select); the `MUSIC ON` row becomes
+`MUSIC ON  SFX00 BGM00`.  **Tab** again closes the sound test and returns to the title menu (the
+music resumes, or stays off if it was off).  The sound test is a title-screen mode only — it is not
+available from the pause menu.
 
-- **Left** selects **SFX**, **Right** selects **BGM**.  There is no separate cursor: the last of
-  these directions pressed decides whether Up/Down edits the SFX number or the BGM number.
+- The row keeps the `MUSIC ON` label in its normal column, so `ON` is followed by **two blank
+  columns** before `SFX`; with `MUSIC OFF` the label is one column longer, so exactly **one** blank
+  remains and the row never reads `OFFSFX`.
+- `SFX` and `BGM` each carry their two-digit value directly (`SFX00`, `BGM00`), with one blank column
+  between the two fields; everything stays inside column 31.
+- **Left** selects **SFX**, **Right** selects **BGM**.  There is no separate cursor: the selected
+  field's two digits are drawn in the title's pale **yellow**, the other field in the same light blue
+  as the menu text, so the selection is visible without changing any other colour on the screen.
+  The digits are sprites (as in the original NES build), so they do not disturb the background's
+  attribute blocks.  The colours survive a round trip through a level: the title uploads its sprite
+  palettes from `palTitleSPR` (`palettes.h`, the `SP0`–`SP3` rows of `palettes/title.txt`) with
+  `fade_title_in()`, so the engine still recognises the title palette after the game's palette has
+  been active.
 - **Up** increases and **Down** decreases the selected number.  SFX is **00–14**; BGM is **00–07**.
-- **X (B)** plays the selected SFX, or starts the selected BGM.  **Z / Space (A)** stops the BGM.
+- **X (B)** plays the selected SFX, or starts the selected BGM.  **Space** plays the selected item too:
+  it is the **A** button, but `_pad_poll` exposes a separate `pad_space` byte, so Space auditions while
+  **Z (A)** keeps its stop role — the sound test is fully usable without X/Z (and therefore without
+  Caps Lock).  **Z** stops the BGM.  While an SFX is auditioned the BGM keeps running; the SFX plays
+  over it.  (Pressing **Space** while the **BGM** field is selected replaces the running music.)
 - **Return / P (Start)** leaves the sound test and starts the game at the normal default level
-  (Level 1); it does not return to the title menu.
+  (Level 1); **Tab** returns to the title menu instead.
 
 SFX numbers, in order: **00 START**, **01 MENU**, **02 EXCHANGE**, **03 ITEM1**, **04 ITEM2**,
 **05 HIT**, **06 FALLING**, **07 DROP**, **08 NO_EXCHANGE**, **09 OUT_OF_EXCHANGES**,

@@ -123,6 +123,11 @@ const char versionStr[]="Alter Ego v1.023a 21.02.17";
 
 //music pointers list
 
+/* Set by _pad_poll (neslib_silky.s): 1 while the key being read is Space.
+ * Space carries the same NES A bit as Z, but the sound test uses it to
+ * audition the selected SFX/BGM, so playing does not depend on X/Z. */
+extern unsigned char pad_space;
+
 extern const unsigned char music_title_data[];
 extern const unsigned char music_level1_data[];
 extern const unsigned char music_level2_data[];
@@ -431,6 +436,26 @@ void fade_screen_out(void)
 
 
 
+/* fade_screen_in(palTitleBG) fades the sprite palettes to the same four rows it
+ * fades the background to, which would make sprite palette 1 the same yellow
+ * as background palette 1 and lose the grey title cursor.  Fade them to
+ * palTitleSPR instead; those are also the SP0-SP3 rows in palettes/title.txt,
+ * so the engine still recognises the title palette after a game. */
+void fade_title_in(void)
+{
+	for(i=0;i<16;i++)
+	{
+		ppu_waitnmi();
+		if(!(i&3))
+		{
+			pal_fade_to_bg(palTitleBG);
+			pal_fade_to_spr(palTitleSPR);
+		}
+	}
+}
+
+
+
 /* 8x8 font tiles used by the original pause labels. */
 static unsigned char menu_tile(char c)
 {
@@ -508,19 +533,27 @@ static void title_draw_level(void)
 	title_draw_text(21,22,d);
 }
 
-/* The sound-test readout shares row 23 with MUSIC ON.  Draw it as
- * background text to the right of the menu so all six characters fit
- * without hitting the PPU's eight-sprites-per-scanline limit. */
+/* The sound-test counters are sprites, exactly as on the NES: the selected
+ * pair uses sprite palette 1 (index 3 is the title's pale yellow $38), the
+ * other pair palette 2 (index 3 is $21, the same light blue as the menu
+ * text), and both use $01 for the outline.  Sprites keep the digits out of
+ * the background's 16x16 attribute blocks, so nothing else on row 23 changes
+ * colour.  The title scrolls the background down by eight lines, so the
+ * sprite must sit eight lines higher to share the row: row 23 starts at
+ * scanline 184, an OAM y is the line above the first sprite line, and
+ * 184-8-1 = 175.
+ * These are the SP rows of palettes/title.txt, and fade_title_in() uploads
+ * them, so the engine recognises the title palette when the game comes back
+ * to the title screen (fade_screen_in() would upload the background rows here
+ * instead, and the sprite colours would then not match title.txt).
+ * Layout on row 23 (columns): 10 MUSIC ON/OFF, 20 SFX, 23 the SFX number,
+ * 26 BGM, 29 the BGM number. */
 static void title_draw_sound_values(void)
 {
-	char d[3];
-	d[0]=(char)('0'+px/10);
-	d[1]=(char)('0'+px%10);
-	d[2]=0;
-	title_draw_text(23,23,d);
-	d[0]=(char)('0'+py/10);
-	d[1]=(char)('0'+py%10);
-	title_draw_text(23,30,d);
+	oam_spr(184,175,0xf0+(px/10), (unsigned char)(j?2:1), 0);
+	oam_spr(192,175,0xf0+(px%10),(unsigned char)(j?2:1), 1);
+	oam_spr(232,175,0xf0+(py/10), (unsigned char)(j?1:2), 2);
+	oam_spr(240,175,0xf0+(py%10),(unsigned char)(j?1:2), 3);
 }
 
 
@@ -615,7 +648,7 @@ void credits_screen(void)
 	unrle_vram(credits,0x2000);
 	scroll(0,8);
 	ppu_on_bg();
-	fade_screen_in(palTitleBG);
+	fade_title_in();
 
 	j=150;
 
@@ -665,10 +698,13 @@ void title_screen(void)
 	music_play(musicData[MUS_TITLE]);
 	if(music_muted) music_stop();
 
-	fade_screen_in(palTitleBG);
+	fade_title_in();
 	title_draw_menu();
 	title_draw_level();
 
+/* Returning from the sound test restarts the title menu here without
+ * replaying the title art or the fade-in. */
+title_menu_again:
 	j=0;
 	atr=16;
 	frame_cnt=0;
@@ -742,7 +778,8 @@ void title_screen(void)
 			/* The original NES sound test needs A+B+Start.  The IIgs
 			 * keyboard shim can only see one key code, so Tab (Select)
 			 * opens the sound test directly instead of requiring a
-			 * chord.  Start leaves it. */
+			 * chord.  A second Tab collapses it back to the title
+			 * menu; Start leaves it and starts the game. */
 			if(i&PAD_SELECT)
 			{
 				py=1;
@@ -808,9 +845,15 @@ void title_screen(void)
 
 	if(py)//sound test
 	{
-		/* The readout is background text to the right of MUSIC ON:
-		 * MUSIC ON ends at column 17; SFX starts at column 19. */
-		title_draw_text(23,19,"SFX");
+		unsigned char back_to_title=0;
+
+		/* The readout shares row 23 with MUSIC ON/OFF.  The label keeps
+		 * its normal column: "MUSIC ON" then has two blank columns
+		 * before SFX, and "MUSIC OFF" has one, so the two never read as
+		 * "OFFSFX".  SFX and BGM each carry their own two-digit value
+		 * directly ("SFX00 BGM00"), so everything fits inside col 31. */
+		title_clear_row(23,19,13);
+		title_draw_text(23,20,"SFX");
 		title_draw_text(23,26,"BGM");
 
 		j=0;
@@ -820,13 +863,19 @@ void title_screen(void)
 
 		while(1)
 		{
-			unsigned char oldpx=px;
-			unsigned char oldpy=py;
-
 			ppu_waitnmi();
+			title_draw_sound_values();
 			i=pad_trigger();
 
 			if(i&PAD_START) break;
+
+			/* A second Tab closes the sound test and returns to the
+			 * title menu instead of starting the game. */
+			if(i&PAD_SELECT)
+			{
+				back_to_title=1;
+				break;
+			}
 
 			if(i&PAD_LEFT)  j=0;
 			if(i&PAD_RIGHT) j=1;
@@ -841,14 +890,29 @@ void title_screen(void)
 				if(!j) { if(px) px--; } else { if(py) py--; }
 			}
 
-			if(px!=oldpx||py!=oldpy) title_draw_sound_values();
+			/* Z stops the music; Space auditions the selected SFX or
+			 * BGM (Space is the A button, so it works without touching
+			 * X/Z).  X still auditions as well. */
+			if((i&PAD_A) && !pad_space) music_stop();
 
-			if(i&PAD_A) music_stop();
-
-			if(i&PAD_B)
+			if((i&PAD_B) || ((i&PAD_A) && pad_space))
 			{
 				if(!j) sfx_play(px,0); else music_play(musicData[py]);
 			}
+		}
+
+		if(back_to_title)
+		{
+			/* Erase the SFX/BGM readout and hide its sprites, restore
+			 * the normal menu and resume the title music; do not run the
+			 * fade-out path. */
+			oam_clear();
+			title_clear_row(23,19,13);
+			title_draw_menu();
+			title_draw_level();
+			if(music_muted) music_stop();
+			else music_play(musicData[MUS_TITLE]);
+			goto title_menu_again;
 		}
 	}
 

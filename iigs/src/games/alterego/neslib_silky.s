@@ -13,6 +13,7 @@
 	.export _music_play,_music_stop,_music_pause
 	.export _sfx_play
 	.export _pad_poll,_pad_trigger
+	.export _pad_space
 	.export _rand,_setrand
 	.export _set_vram_update,_vram_adr,_vram_put,_vram_fill,_vram_inc
 	.export _memcpy
@@ -516,10 +517,13 @@ _pad_poll:
 	;   X             B
 	php
 	sep	#$20
+	lda	#$00
+	sta	_pad_space	; set only by the Space key (see below)
 	lda	$E0C010
 	and	#$80
-	beq	@no_key
-	lda	$E0C000
+	bne	@k0
+	jmp	@no_key		; out of branch range
+@k0:	lda	$E0C000
 	and	#$7F
 
 	cmp	#$08		; left arrow
@@ -564,8 +568,9 @@ _pad_poll:
 	beq	@a
 	cmp	#$20		; Space
 	bne	@k7
-@a:	lda	#$01
-	bra	@store
+	lda	#$01
+	sta	_pad_space	; Space is A, but the game can tell it apart
+	bra	@a
 @k7:	cmp	#$58		; X
 	beq	@b
 	cmp	#$78		; x
@@ -573,8 +578,19 @@ _pad_poll:
 	cmp	#$18		; Ctrl-X / some ADB keyboards
 	beq	@b
 	cmp	#$07		; raw ADB X
+	beq	@b
+	; Last resort: compare the low five bits only.  Keyboards, ROMs and
+	; emulators differ in the upper bits of $C000 (case bit 5, the strobe
+	; bit 7, some set bit 6), and a Caps Lock-off key must still work:
+	; "x"/"X" is always $18 in the low five bits, "z"/"Z" is $1A.
+	and	#$1F
+	cmp	#$1A		; Z
+	beq	@a
+	cmp	#$18		; X
 	bne	@no_key
 @b:	lda	#$02
+	bra	@store
+@a:	lda	#$01
 	bra	@store
 
 @no_key:
@@ -736,5 +752,8 @@ _memcpy:
 	bne @4
 @5:
 	rts
-
-
+; Set to 1 by _pad_poll only while the Space key is the key being read.
+; The game uses it to let Space audition the sound-test selection while Z
+; keeps its own "stop the music" role.
+	.segment "BSS"
+_pad_space:	.res	1
