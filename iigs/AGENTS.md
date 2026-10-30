@@ -14,6 +14,108 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 - Known gap: on the user's machine X/Z still need Caps Lock; the shim accepts every encoding tried and
   GSplus runs fine without Caps Lock, so that layer was not changed again — the sound test no longer
   depends on X/Z (see "Open issue" below for the pending diagnostic).
+- Exchange-move sea stripes: **fixed and reproduced/verified** (see the 2026-10-30b entry below).
+- 2.8 MHz: renders fit in one VBL (`renderVblTicks` = 1) and music is VBL-driven at 60 Hz — measured,
+  not assumed; details in the same entry.
+
+## 2026-10-30b — exchange-move sea stripes fixed; 2.8 MHz performance measured
+
+### Bug — stray stripes in the sea during the A/B exchange move
+
+- **Root cause**: the swap sets `player_flash_cnt=2` on every frame while the two egos move
+  (`game_apop1.c`, `player_exchange==1`), and the NES flash wrote `pal_col($3F15..$3F17)`
+  alternating `$21`/`$27`.  Those NES sprite-palette entries alias onto the IIgs SHR slots the
+  background palettes also fill (`BG2` uses slots 0,7,8,9, `SP1` 0,3,7,9, `SP2` 0,13,14,3), so
+  the flash recoloured the water.  The 50-frame `DONE_NOLUCK` flash did the same.
+- **Reproduced twice, once through the real code path**:
+  - unconditional `pal_col` replay: whole sea band orange-striped —
+    `docs/screenshots/exchange_sea_before.png` (8,000 px of `255,170,68` replacing the blue rows);
+  - the decisive run: keep the *original* flash code and force the game's own trigger
+    (`i|=PAD_A; exchange=5;` every 64 frames in the play loop, so the swap / blocked-swap flash
+    runs as it does for a player).  46 captured frames at 2.8 MHz → **23,696 orange px** in the
+    sea band, up to **2,780 px in one frame** (`docs/screenshots/exchange_sea_old_path.png`).
+    Same harness with the fixed flash → **0 orange px in all 46 frames**
+    (`docs/screenshots/exchange_sea_fixed_path.png`, and `..._wave.png` mid wave-toggle).
+- **Fix**: no palette writes and no palette-bit switching — the flash blinks the ego sprites
+  (see "Follow-up: the flash must not repaint the ego either" below for the final form).
+- The bug is intermittent because a `pal_col` change makes `DetectNESPalette` miss, so
+  `LoadPaletteColors` walks the entries and the aliased slots leak into the background; when a
+  known palette is applied the same writes are invisible.
+- `level_params[level<<1]` holds the exchange count: **every level has ≥1** (levels 0/1/2 = 2,
+  3 = 0, 4 = 3, 5 = 4, 8 = 8 …).  Level 1 does have exchanges, so it *is* testable; the earlier
+  "A does nothing on level 1" observation was a missing key event in the scripted GSplus run,
+  not `exchange==0`.  Driving the trigger from inside the game (`i|=PAD_A; exchange=5;`) always
+  reproduces it.
+
+### Follow-up: the flash must not repaint the ego either
+
+- The first fix flashed by switching the OAM palette bits (`|1` ↔ `|2`).  On screen that paints
+  the ego with the **next** sprite palette — measured colours for the ego sprite:
+  palette 0 → head `255,255,255` + body `119,187,255` (white head, pale-blue clothes = correct),
+  the flash's alternate palette → head `255,119,85` + body `221,187,255` (**red head, white
+  body**) — exactly what the user reported during an exchange.
+- "Sometimes" was a second bug: `player_flash_cnt` is re-armed every frame of the swap, so the
+  last evaluated value stayed in `player_atr`, leaving the ego on the wrong palette after the
+  move until it walked again (the code only rewrites `player_atr` on movement/idle).
+  Side-by-side evidence: `docs/screenshots/ego_flash_palette_compare.png` (left = the flash's
+  alternate palette, red head / white body; right = the correct white head / blue clothes).
+- **Final fix**: the flash is now a *visibility blink* — `if(player_flash_cnt) player_flash_cnt--;`
+  plus the ego draw condition `(!start_delay||(start_delay&8))&&(!player_flash_cnt||(frame_cnt&1))`.
+  Both egos blink (they share the palette, as in the NES original), the palette bits never change,
+  so the ego keeps white head / blue clothes for the whole move.  The 50-frame `DONE_NOLUCK`
+  (drowning) flash does the same with the sprite-0 off-screen row (`0,255,0,0`).
+- **Verified** with the same forced-exchange harness, 70 frames at 2.8 MHz: sea = 0 orange px;
+  ego colours observed = white `255,255,255` only (plus frames where the ego is blinked off);
+  `255,119,85` / `221,187,255` / `187,34,0` never appear.
+- Sprite-palette cheat sheet for future flashes: the ego's own palette (OAM bits 0) is the only
+  one with white/blue; bits 1..3 give red-white / magenta-green / dark-teal-grey.  Never flash by
+  moving the ego onto another sprite palette.
+
+### Performance at 2.8 MHz — measured, not assumed
+
+- Two instruments, both left in the tree but disabled:
+  - `RENDER_VBL_COUNT equ 1` (Config.s) draws `renderVblTicks` at the top-left (SHR $2000);
+    its colour was `#$FFFF` (palette 15, never written ⇒ invisible) and is now `#$0303`.
+  - `SHOW_DEBUG_VARS equ 1` (Config.s) draws fps/input/dirty/full counters (masks fixed, below).
+- At `g_limit_speed = 2` the VBL digit reads **1** every frame ⇒ a full render fits inside one
+  VBL interval (< 46,666 cycles), i.e. no frame overrun.
+- The FamiTone2 update (`crt0_silky.s` NMI continuation: `jsr FamiToneUpdate`) is driven by the
+  VBL once per NES frame, independent of the C game loop ⇒ music ticks at 60 Hz exactly while
+  renders stay inside one VBL interval.
+- The sea animation toggles every 16 game frames; measured 0.24–0.26 s at 2.8 MHz ⇒ ≈60–62 game
+  frames/s.
+- **Conclusion**: the port is not CPU-bound at 2.8 MHz.  GSplus on this VM caps at
+  `Eff MHz: 2.55`, so the earlier "16 MHz" sessions were also ~2.55 MHz effective — the 16 vs
+  2.8 comparison was meaningless.  A remaining stutter on other machines is an audio-path or
+  host-speed question, not the renderer.
+
+### Build-system trap — `src/game/` is dead for this game
+
+Merlin32 resolves `put` paths relative to the **link file's directory**
+(`src/games/alterego`), so the engine really reads `src/games/alterego/game/{Config.s,Hooks.s,...}`
+and `src/games/alterego/{ppu,rom,core}/*.s`.  `stageEngineFiles` in `nromBuild.js` writes
+`src/game/*`, which this build never sees (proved by putting a deliberate syntax error there:
+the build still succeeded).  Behaviour changes must go into `src/games/alterego/game/Config.s`
+and `src/games/alterego/{ppu,rom}/*.s`; the `src/game/*` and `src/ppu/*` copies are kept in sync
+for source consistency only.
+
+### Files touched
+
+- `src/games/alterego/game_apop1.c` — flash fix (exchange + `DONE_NOLUCK`), comments explain the
+  slot aliasing.
+- `src/games/alterego/ppu/ppu.s` + `src/ppu/ppu.s` — `bne as_bitmap_clip` (145 bytes, over the
+  127-byte limit once `SHOW_DEBUG_VARS` is on) replaced with `beq *+5` / `brl`.
+- `src/games/alterego/ppu/ppu_frame.s` + `src/ppu/ppu_frame.s` — `_ShowDebugInfo` masks from
+  palette-15 `$FFFF` to `$3333/$2222/$1111` (per-byte nibble masks leave digits striped).
+- `src/rom/scaffold.s` + `src/games/alterego/rom/scaffold.s` — `RENDER_VBL_COUNT` digit colour
+  `$FFFF` → `$0303`.
+- `prg.bin` 32,768 B, SHA256 `B52255482568D1EAD318B6F9BF464EB6BF4B9D0AF0B258428FD11FF4728334EB`
+  (byte-reproducible);
+  `AlterEgoGS` 313,150 B; `emu/AlterEgoJml.2mg` repacked
+  (SHA256 `6D5781E7FD807C48A79FA3929F9CE463D20F9ADEF86230854E437A7DEC7E8C2B`, 10,485,824 B).
+  The app/2mg are **not** byte-reproducible across rebuilds even with an identical `prg.bin`
+  (the Merlin build embeds build-time data), so compare `prg.bin`, not the image hash.
+  Verified booting at `Limit: 2.8Mhz` into level 1 (`docs/screenshots/level1_28mhz.png`).
 
 ## 2026-10-30 — sound test: Tab toggles back, spacing, yellow sprite digits
 

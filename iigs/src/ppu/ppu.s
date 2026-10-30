@@ -503,12 +503,10 @@ drawSprites
 ; This is the point to check if there is a compiled version of this sprite
 
         ldy  sprTmp4        ; Test if this sprite needs clipping (first test; Y, so X keeps the OAM index)
-        DO   SPR_CACHE_STATS
-        beq  *+5            ; (the counters put the target out of reach)
+; The target is out of range of a short branch even without SPR_CACHE_STATS once the debug code is
+; assembled (SHOW_DEBUG_VARS), so always use the skip + long branch pair.
+        beq  *+5
         brl  as_bitmap_clip
-        ELSE
-        bne  as_bitmap_clip
-        FIN
 
         bit  #$2000         ; Is the priority bit set?
         bne  as_bitmap

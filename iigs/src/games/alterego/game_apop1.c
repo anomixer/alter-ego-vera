@@ -1363,24 +1363,17 @@ void game_loop(void)
 			if(player_spr!=PLAYER_SPR_LADDER) player_spr=PLAYER_SPR_IDLE;
 		}
 
-		if(player_flash_cnt)
-		{
-			player_flash_cnt--;
+		/* Exchange flash: blink the ego sprites instead of recolouring them.
+		 * The NES version flashed pal_col($3F15-$3F17) with $21/$27, but those
+		 * entries alias onto SHR slots 3, 7 and 9 that the background palettes
+		 * also fill (BG2 uses 0,7,8,9, SP1 uses 0,3,7,9), so the flash put
+		 * stripes in the sea.  Switching the OAM palette bits fixed the sea but
+		 * painted the ego with sprite palette 3 ($16/$32/$30 = red head, white
+		 * body) and could leave it there after the swap.  Blinking keeps the
+		 * ego's own colours (white head, blue clothes) for the whole move. */
+		if(player_flash_cnt) player_flash_cnt--;
 
-			if(player_flash_cnt)
-			{
-				i=(frame_cnt&1)?0x21:0x27;
-				pal_col(0x15,i);
-				pal_col(0x16,i);
-				pal_col(0x17,i);
-			}
-			else
-			{
-				pal_spr(&palette[16]);
-			}
-		}
-
-		if(!start_delay||(start_delay&8))
+		if((!start_delay||(start_delay&8))&&(!player_flash_cnt||(frame_cnt&1)))
 		{
 			oam_spr(player_x1,player_y1-8,player_spr     ,player_atr,OAM_PLAYER+0);//active ego
 			oam_spr(player_x1,player_y1  ,player_spr+0x10,player_atr,OAM_PLAYER+1);
@@ -1855,13 +1848,22 @@ void game_loop(void)
 	{
 		sfx_play(SFX_HIT,0);
 
+		/* Drowning flash: blink the ego sprites, same reasoning as the exchange
+		 * flash above -- no palette writes, so the background stays put and the
+		 * ego keeps its own colours. */
 		for(i=0;i<50;i++)
 		{
 			ppu_waitnmi();
-			j=(i&4)?0x06:0x27;
-			pal_col(0x15,j);
-			pal_col(0x16,j);
-			pal_col(0x17,j);
+			if(i&4)
+			{
+				oam_spr(0,255,0,0,OAM_PLAYER+0);
+				oam_spr(0,255,0,0,OAM_PLAYER+1);
+			}
+			else
+			{
+				oam_spr(player_x1,player_y1-8,player_spr     ,player_atr,OAM_PLAYER+0);
+				oam_spr(player_x1,player_y1  ,player_spr+0x10,player_atr,OAM_PLAYER+1);
+			}
 		}
 
 		i=1;

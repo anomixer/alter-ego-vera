@@ -239,42 +239,46 @@ _ShowDebugInfo
             ldx   frameTick
             lda   Mul160Tbl,x
             tax
-            lda   #$EEEE
+            lda   #$0202
             stal  $012000+{40*160},x
+
+; The glyph pixel mask is a Super Hires pixel value (palette<<4 | colour).  $FFFF drew the digits in
+; IIgs palette 15, which no game palette fills in, so they were invisible; use palette 0 slots 1-3,
+; which every game palette fills with visible colours.
 
 ; Show the current frames per second
             ldal  framesPerSecond
             ldx   #0
-            ldy   #$FFFF
+            ldy   #$0303
             jsl   DrawByteL
 
 ; Show the current player one input byte
             lda   InputPlayer1
             ldx   #8*160
-            ldy   #$FFFF
+            ldy   #$0303
             jsl   DrawWordL
 
 ; Show the number of dirty and full frames rendered
             lda   dirtyCount
             ldx   #16*160
-            ldy   #$EEEE
+            ldy   #$0202
             jsl   DrawWordL
 
             lda   fullCount
             ldx   #24*160
-            ldy   #$8888
+            ldy   #$0101
             jsl   DrawWordL
 
 
 ; Show the size of the attribute queues (current, previous)
             lda   at_count
             ldx   #{0*160}+144
-            ldy   #$FFFF
+            ldy   #$0303
             jsl   DrawWordL
 
             lda   at_prev_count
             ldx   #{8*160}+144
-            ldy   #$FFFF
+            ldy   #$0303
             jsl   DrawWordL
 
 ; Move the frameTick to the next position

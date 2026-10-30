@@ -519,7 +519,7 @@ NES_RenderFrame
             stz   renderActive
             lda   renderVblTicks
             ldx   #0                      ; SHR $2000
-            ldy   #$FFFF                  ; colour 15
+            ldy   #$0303                  ; palette 0 colour 3 (visible)
             jsr   DrawByte
             FIN
 
