@@ -41,11 +41,11 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 - The bug is intermittent because a `pal_col` change makes `DetectNESPalette` miss, so
   `LoadPaletteColors` walks the entries and the aliased slots leak into the background; when a
   known palette is applied the same writes are invisible.
-- `level_params[level<<1]` holds the exchange count: **every level has ≥1** (levels 0/1/2 = 2,
-  3 = 0, 4 = 3, 5 = 4, 8 = 8 …).  Level 1 does have exchanges, so it *is* testable; the earlier
-  "A does nothing on level 1" observation was a missing key event in the scripted GSplus run,
-  not `exchange==0`.  Driving the trigger from inside the game (`i|=PAD_A; exchange=5;`) always
-  reproduces it.
+- `level_params[level<<1]` holds the exchange count (`game_apop1.c:206`): levels 0/1/2 = 2,
+  3 = 0, 4 = 3, 5 = 4, 8 = 8 …  So level 1 *does* have two exchanges and is a valid test
+  level; the earlier "A does nothing on level 1" run was a synthetic key that GSplus never
+  delivered to the shim, not an `exchange==0` level.  Driving the trigger from inside the game
+  (`i|=PAD_A; exchange=5;`) always reproduces the flash.
 
 ### Follow-up: the flash must not repaint the ego either
 
@@ -67,9 +67,12 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
 - **Verified** with the same forced-exchange harness, 70 frames at 2.8 MHz: sea = 0 orange px;
   ego colours observed = white `255,255,255` only (plus frames where the ego is blinked off);
   `255,119,85` / `221,187,255` / `187,34,0` never appear.
-- Sprite-palette cheat sheet for future flashes: the ego's own palette (OAM bits 0) is the only
-  one with white/blue; bits 1..3 give red-white / magenta-green / dark-teal-grey.  Never flash by
-  moving the ego onto another sprite palette.
+- Sprite-palette cheat sheet (colours measured on the ego sprite itself): the ego's own palette
+  is the only one that renders white head `255,255,255` + pale-blue body `119,187,255` (the
+  normal look, confirmed on the shipped build at level start); the other three sprite palettes
+  give red head `255,119,85` + pale body `221,187,255`, magenta `255,0,255`/green `34,153,0`, and
+  dark-teal `0,68,68`/grey `187,187,187`.  Flash by blinking, never by moving the ego onto
+  another sprite palette.
 
 ### Performance at 2.8 MHz — measured, not assumed
 
