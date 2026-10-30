@@ -643,6 +643,8 @@ void update_stats(unsigned char show)
 
 void credits_screen(void)
 {
+	unsigned int hold;	// j is an unsigned char, so it cannot hold 360 frames
+
 	ppu_off();
 	pal_clear();
 	unrle_vram(credits,0x2000);
@@ -650,7 +652,7 @@ void credits_screen(void)
 	ppu_on_bg();
 	fade_title_in();
 
-	j=150;
+	hold=360;		// ~6 s at 60 Hz (was 150 = 2.5 s; ten lines need reading time)
 
 	while(1)
 	{
@@ -658,8 +660,8 @@ void credits_screen(void)
 		i=pad_trigger();
 			oam_spr(16,px&16?240:py,0xff,0,OAM_PAUSE);
 			px++;
-		j--;
-		if(!j||(i&PAD_START)) break;
+		hold--;
+		if(!hold||(i&PAD_START)) break;
 	}
 
 	fade_screen_out();

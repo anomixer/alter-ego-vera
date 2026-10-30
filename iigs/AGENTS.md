@@ -15,6 +15,7 @@ archived `//e` notes in the repository root. Dates are Asia/Taipei.
   GSplus runs fine without Caps Lock, so that layer was not changed again — the sound test no longer
   depends on X/Z (see "Open issue" below for the pending diagnostic).
 - Exchange-move sea stripes: **fixed and reproduced/verified** (see the 2026-10-30b entry below).
+- Credits screen: rows tightened, the IIgs credit added, held 6 s — see the 2026-10-30c entry.
 - 2.8 MHz: renders fit in one VBL (`renderVblTicks` = 1) and music is VBL-driven at 60 Hz — measured,
   not assumed; details in the same entry.
 
@@ -112,13 +113,69 @@ for source consistency only.
   palette-15 `$FFFF` to `$3333/$2222/$1111` (per-byte nibble masks leave digits striped).
 - `src/rom/scaffold.s` + `src/games/alterego/rom/scaffold.s` — `RENDER_VBL_COUNT` digit colour
   `$FFFF` → `$0303`.
-- `prg.bin` 32,768 B, SHA256 `B52255482568D1EAD318B6F9BF464EB6BF4B9D0AF0B258428FD11FF4728334EB`
+- `prg.bin` 32,768 B, SHA256 `C4CB044597B065F39E3435EF60869A6653ED388287B557B3087EFDB0C3AAD84D`
   (byte-reproducible);
-  `AlterEgoGS` 313,150 B; `emu/AlterEgoJml.2mg` repacked
-  (SHA256 `6D5781E7FD807C48A79FA3929F9CE463D20F9ADEF86230854E437A7DEC7E8C2B`, 10,485,824 B).
+  `AlterEgoGS` 313,213 B; `emu/AlterEgoJml.2mg` repacked
+  (SHA256 `A3861EC1E71EECD272E086D25F5F3F0DFED84D38797ACD2491150343DB158C7C`, 10,485,824 B).
   The app/2mg are **not** byte-reproducible across rebuilds even with an identical `prg.bin`
   (the Merlin build embeds build-time data), so compare `prg.bin`, not the image hash.
   Verified booting at `Limit: 2.8Mhz` into level 1 (`docs/screenshots/level1_28mhz.png`).
+
+## 2026-10-30c — credits screen: tighter rows, IIgs credit, 6 s hold
+
+The credits screen is a compressed nametable, not a text block, so "just edit the lines" means
+regenerating the array.  Everything below was measured or derived, not guessed.
+
+### How `credits[]` works
+
+- `credits_screen()` does `unrle_vram(credits,0x2000)` — the array is RLE VRAM that unpacks to
+  **1024 bytes = 960 nametable bytes (32x30) + the 64-byte attribute table** (`$23C0..$23FF`), so one
+  array carries both the glyphs and the colours.
+- RLE format: `data[0]` is the tag (`$01`); a literal byte is stored as-is, and `tag,count` repeats
+  the previous byte `count` **more** times.  The count is one byte, so a run longer than 256 must be
+  emitted as several `tag,min(rest,255)` chunks — a naive encoder silently drops the tail and still
+  looks plausible (the round-trip check in the generator catches it).
+- Glyph codes (read out of the existing data): `A..P` = `$80..$8F`, `R..V` = `$6B..$6F`, `X` =
+  `$7B`, `Y` = `$7C`, `Z` = `$7D`, `0..9` = `$F0..$F9`, space `$00`, `"` = `$FC`/`$FD`
+  (opening/closing), and the copyright sign is the two cells `$7E,$7F`.
+  Generator: `scripts/gen-credits.py`.
+- Colour constraint: an NES attribute quadrant is 2 tiles tall and 2 wide, so rows 4k,4k+1 share one
+  palette and 4k+2,4k+3 the next — two vertically adjacent single-height text rows **cannot** have
+  different colours.  Leaving exactly **one** blank row between lines puts every line in its own
+  quadrant, which is how the original screen alternated colours.  Measured palette ids: **3 = blue**,
+  **1 = red with a yellow highlight**, **2 = deeper red/salmon without the highlight** (the original
+  used 2 for `ALEX SHABANOV` — keep it).
+- A false start is worth remembering: compacting the block to ten consecutive rows (no blank rows at
+  all) fits and looks tidy in a screenshot, but it forces the colours to group in pairs and leaves a
+  big empty area at the bottom — rejected by the user.  Keep one blank row.
+
+### Final layout (all rows at text column 3)
+
+| row | palette | text |
+|---|---|---|
+| 7  | 3 blue | `ORIGINAL ZX SPECTRUM GAME` |
+| 9  | 1 red  | `(c) 2011 DENIS GRATCHEV` |
+| 11 | 3 blue | `NES CONVERSION BY` |
+| 13 | 1 red  | `SHIRU` |
+| 15 | 3 blue | `NES MUSIC BY` |
+| 17 | 1 red  | `RICHARD "KULOR" ARMIJO` |
+| 19 | 3 blue | `HACKED BY` |
+| 21 | 2 red  | `ALEX SHABANOV` |
+| 23 | 3 blue | `APPLE IIGS VERSION BY` |
+| 25 | 2 red  | `ANOMIXER 2026` |
+
+- The block keeps the original first row (7) and bottom row (25) and the original one-blank-row
+  rhythm; the two 3-row gaps before `NES CONVERSION BY` / `NES MUSIC BY` are gone (those headers
+  moved up by 2 and 4 rows), which frees exactly the space for the two IIgs lines under
+  `ALEX SHABANOV`.  `scroll(0,8)` is unchanged.
+- Holding time: `credits_screen()` used `j=150` frames (2.5 s).  `j` is **`unsigned char`**
+  (`game_apop1.c:376`), so writing `j=360` silently wraps to 104 — use a local `unsigned int hold`
+  instead.  Now 360 frames = **6 s**, measured on the repacked image (fully drawn 6.03 s; harness
+  `tmp/bench/timcred5.ps1 <out> rel28.kegs`).  START still skips the screen.
+- Automation trap: `tmp/bench/rep28.kegs` boots **`AEBench.2mg`**, `rel28.kegs` boots
+  `emu/AlterEgoJml.2mg`.  A stale bench image silently invalidates timing checks — repack
+  `AEBench.2mg` before capturing, or time the release image directly.
+- Evidence: `docs/screenshots/credits_iigs_version.png` (captured at `Limit: 2.8Mhz`).
 
 ## 2026-10-30 — sound test: Tab toggles back, spacing, yellow sprite digits
 
